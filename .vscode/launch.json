@@ -20,6 +20,22 @@
         "traceResponse": false,
         "engineLogging": false
       }
+    },
+    {
+      "name": "(msvc) Launch",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/g7000.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "logging": {
+        "trace": false,
+        "traceResponse": false,
+        "engineLogging": false
+      }
     }
   ]
 }

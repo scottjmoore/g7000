@@ -17,6 +17,26 @@
         "kind": "build",
         "isDefault": true
       }
+    },
+    {
+      "label": "Build with msvc",
+      "type": "shell",
+      "command": "cl.exe",
+      "args": [
+        "/EHsc",
+        "/Zi",
+        "/Fe:",
+        "build/g7000.exe",
+        "src/*.cpp"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": "$msCompile"
     }
   ]
 }
