@@ -1,4 +1,7 @@
 .DS_Store
 *.obj
 *.pdb
-/build
+*.exe
+*.ilk
+*.pdb
+*.out

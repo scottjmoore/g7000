@@ -25,6 +25,10 @@
       "args": [
         "/EHsc",
         "/Zi",
+        "/Fd:",
+        "build/obj/",
+        "/Fo:",
+        "build/obj/",
         "/Fe:",
         "build/g7000.exe",
         "src/*.cpp"
