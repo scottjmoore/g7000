@@ -81,7 +81,7 @@ void MCS48::decode()
     fetch();       // fetch immediate data to add to accumulator
     stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
     stringout << "MOV A, ";
-    stringout << "#0" << hex << setw(2) << unsigned(fetched) << "H";
+    stringout << "#" << setfill('0') << hex << setw(2) << unsigned(fetched) << "H";
     MOV_A_data(fetched); // execute instruction
     break;
   case 0b00000000: // NOP
@@ -103,7 +103,7 @@ void MCS48::decode()
     fetch();       // fetch immediate data to add to accumulator
     stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
     stringout << "XLR A, ";
-    stringout << "#0" << hex << unsigned(fetched) << "H";
+    stringout << "#" << setfill('0') << hex << unsigned(fetched) << "H";
     XRL_A_data(fetched); // execute instruction
     break;
 
@@ -154,7 +154,7 @@ void MCS48::decode()
         fetch();
         stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
         stringout << "MOV R" << unsigned(reg) << ", ";
-        stringout << "#0" << hex << unsigned(fetched) << "H";
+        stringout << "#" << setfill('0') << hex << setw(2) << unsigned(fetched) << "H";
         writeRegister(reg, fetched);
         decoded = true;
         break;
@@ -320,9 +320,9 @@ void MCS48::debug()
        << endl;
 
   cout << "PC  : " << hex << "0x" << setw(4) << PC << " \t" << endl;
-  cout << "A   : " << hex << "0x" << setw(2) << unsigned(A) << " \t0b" << bitset<8>(A) << endl;
-  cout << "TC  : " << hex << "0x" << setw(2) << unsigned(TC) << " \t0b" << bitset<8>(TC) << endl;
-  cout << "PSW : " << hex << "0x" << setw(2) << unsigned(PSW) << " \t0b" << bitset<8>(PSW) << endl;
+  cout << "A   : " << dec << unsigned(A) << " \t" << hex << "0x" << setw(2) << unsigned(A) << " \t0b" << bitset<8>(A) << endl;
+  cout << "TC  : " << dec << unsigned(TC) << " \t" << hex << "0x" << setw(2) << unsigned(TC) << " \t0b" << bitset<8>(TC) << endl;
+  cout << "PSW : " << dec << unsigned(PSW) << " \t" << hex << "0x" << setw(2) << unsigned(PSW) << " \t0b" << bitset<8>(PSW) << endl;
 
   cout << endl;
 
