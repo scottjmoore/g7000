@@ -94,6 +94,8 @@ public:
   void INC_A();
   void INC_R(uint8_t R);
 
+  void JMP(uint16_t address);
+
   void MOV_A_data(uint8_t data);
 
   void NOP();

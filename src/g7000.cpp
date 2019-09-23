@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <chrono>
+#include <thread>
 #include "mcs48.h"
 
 using namespace std;
@@ -24,41 +26,17 @@ int main()
   mcs48.writeROM(12, 255);        // #255
   mcs48.writeROM(13, 0b11010011); // XRL A,
   mcs48.writeROM(14, 0b10101010); // #0b10101010
+  mcs48.writeROM(15, 0b00000100); // JMP 0
 
   mcs48.reset();
 
-  mcs48.clock();
-  mcs48.debug();
+  while (1)
+  {
+    mcs48.clock();
+    mcs48.debug();
 
-  mcs48.clock();
-  mcs48.debug();
-
-  mcs48.clock();
-  mcs48.debug();
-
-  mcs48.clock();
-  mcs48.debug();
-
-  mcs48.clock();
-  mcs48.debug();
-
-  mcs48.clock();
-  mcs48.debug();
-
-  mcs48.clock();
-  mcs48.debug();
-
-  mcs48.clock();
-  mcs48.debug();
-
-  mcs48.clock();
-  mcs48.debug();
-
-  mcs48.clock();
-  mcs48.debug();
-
-  mcs48.clock();
-  mcs48.debug();
+    this_thread::sleep_for(std::chrono::milliseconds(1000));
+  }
 
   return 0;
 }
