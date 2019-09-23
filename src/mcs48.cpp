@@ -27,8 +27,10 @@ void MCS48::reset()
 
 void MCS48::clock()
 {
+  uint8_t cycles;
+
   fetch();
-  decode();
+  cycles = decode();
 }
 
 void MCS48::fetch()
@@ -41,8 +43,9 @@ void MCS48::fetch()
   }
 }
 
-void MCS48::decode()
+uint8_t MCS48::decode()
 {
+  uint8_t cycles = 0x00;
   ostringstream stringout;
 
   stringout << setfill('0') << hex << setw(4) << PC - 1 << " : ";
@@ -55,56 +58,56 @@ void MCS48::decode()
     stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
     stringout << "ADD A, ";
     stringout << "#" << setfill('0') << hex << setw(2) << unsigned(fetched) << "H";
-    ADD_A_data(fetched); // execute instruction
+    cycles = ADD_A_data(fetched); // execute instruction
     break;
   case 0b00100111: // CLR A
     stringout << "   \t\t";
     stringout << "CLR A";
-    CLR_A(); // execute instruction
+    cycles = CLR_A(); // execute instruction
     break;
   case 0b10010111: // CLR C
     stringout << "   \t\t";
     stringout << "CLR C";
-    CLR_C(); // execute instruction
+    cycles = CLR_C(); // execute instruction
     break;
   case 0b00110111: // CPL A
     stringout << "   \t\t";
     stringout << "CPL A";
-    CPL_A(); // execute instruction
+    cycles = CPL_A(); // execute instruction
     break;
   case 0b10100111: // CPL C
     stringout << "   \t\t";
     stringout << "CPL C";
-    CPL_C(); // execute instruction
+    cycles = CPL_C(); // execute instruction
     break;
   case 0b00100011: // MOV A, #data
     fetch();       // fetch immediate data to add to accumulator
     stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
     stringout << "MOV A, ";
     stringout << "#" << setfill('0') << hex << setw(2) << unsigned(fetched) << "H";
-    MOV_A_data(fetched); // execute instruction
+    cycles = MOV_A_data(fetched); // execute instruction
     break;
   case 0b00000000: // NOP
     stringout << "   \t\t";
     stringout << "NOP";
-    NOP(); // execute instruction
+    cycles = NOP(); // execute instruction
     break;
   case 0b11000101: // SEL RB0
     stringout << "   \t\t";
     stringout << "SEL RB0";
-    SEL_RB0(); // execute instruction
+    cycles = SEL_RB0(); // execute instruction
     break;
   case 0b11010101: // SEL RB1
     stringout << "   \t\t";
     stringout << "SEL RB1";
-    SEL_RB1(); // execute instruction
+    cycles = SEL_RB1(); // execute instruction
     break;
   case 0b11010011: // XLR A, #data
     fetch();       // fetch immediate data to add to accumulator
     stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
     stringout << "XLR A, ";
     stringout << "#" << setfill('0') << hex << unsigned(fetched) << "H";
-    XRL_A_data(fetched); // execute instruction
+    cycles = XRL_A_data(fetched); // execute instruction
     break;
 
   default:
@@ -119,7 +122,7 @@ void MCS48::decode()
       stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
       stringout << "JMP ";
       stringout << setfill('0') << hex << setw(4) << address << "H";
-      JMP(address);
+      cycles = JMP(address);
       decoded = true;
       break;
     }
@@ -134,12 +137,14 @@ void MCS48::decode()
         stringout << "   \t\t";
         stringout << "INC R" << unsigned(reg);
         writeRegister(reg, readRegister(reg) + 1); // TODO : Change to opcode function
+        cycles = 1;
         decoded = true;
         break;
       case 0b10101000: // MOV Rr, A
         stringout << "   \t\t";
         stringout << "MOV R" << unsigned(reg) << ", A";
         writeRegister(reg, A);
+        cycles = 1;
         decoded = true;
         break;
 
@@ -147,6 +152,7 @@ void MCS48::decode()
         stringout << "   \t\t";
         stringout << "MOV A, R" << unsigned(reg);
         A = readRegister(reg);
+        cycles = 1;
         decoded = true;
         break;
 
@@ -156,6 +162,7 @@ void MCS48::decode()
         stringout << "MOV R" << unsigned(reg) << ", ";
         stringout << "#" << setfill('0') << hex << setw(2) << unsigned(fetched) << "H";
         writeRegister(reg, fetched);
+        cycles = 1;
         decoded = true;
         break;
       }
@@ -163,6 +170,8 @@ void MCS48::decode()
   }
 
   decoded_opcode = stringout.str();
+
+  return cycles;
 }
 
 uint8_t MCS48::readROM(uint16_t address)
@@ -219,7 +228,7 @@ void MCS48::writeRegister(uint8_t reg, uint8_t data)
 
 // instructions
 
-void MCS48::ADD_A_data(uint8_t data)
+uint8_t MCS48::ADD_A_data(uint8_t data)
 {
   uint8_t OA = A;
 
@@ -229,81 +238,111 @@ void MCS48::ADD_A_data(uint8_t data)
   {
     PSW ^= PSW_BITS::CY;
   }
+
+  return 2;
 }
 
-void MCS48::CLR_A()
+uint8_t MCS48::CLR_A()
 {
   A = 0x00;
+
+  return 1;
 }
 
-void MCS48::CLR_C()
+uint8_t MCS48::CLR_C()
 {
   PSW = PSW & ~PSW_BITS::CY;
+
+  return 1;
 }
 
-void MCS48::CPL_A()
+uint8_t MCS48::CPL_A()
 {
   A = ~A;
+
+  return 1;
 }
 
-void MCS48::CPL_C()
+uint8_t MCS48::CPL_C()
 {
   PSW ^= PSW_BITS::CY;
+
+  return 1;
 }
 
-void MCS48::JMP(uint16_t address)
+uint8_t MCS48::JMP(uint16_t address)
 {
   PC = address;
+
+  return 2;
 }
 
-void MCS48::MOV_A_data(uint8_t data)
+uint8_t MCS48::MOV_A_data(uint8_t data)
 {
   A = data;
+
+  return 2;
 }
 
-void MCS48::MOV_A_PSW()
+uint8_t MCS48::MOV_A_PSW()
 {
   A = PSW;
+
+  return 1;
 }
 
-void MCS48::MOV_A_RR(uint8_t reg)
+uint8_t MCS48::MOV_A_RR(uint8_t reg)
 {
   A = readRegister(reg);
+
+  return 1;
 }
 
-void MCS48::MOV_PSW_A()
+uint8_t MCS48::MOV_PSW_A()
 {
   PSW = A;
+
+  return 1;
 }
 
-void MCS48::MOV_RR_A(uint8_t reg)
+uint8_t MCS48::MOV_RR_A(uint8_t reg)
 {
   writeRegister(reg, A);
+
+  return 1;
 }
 
-void MCS48::MOV_RR_data(uint8_t reg, uint8_t data)
+uint8_t MCS48::MOV_RR_data(uint8_t reg, uint8_t data)
 {
   writeRegister(reg, data);
+
+  return 2;
 }
 
-void MCS48::NOP()
+uint8_t MCS48::NOP()
 {
-  // do nothing
+  return 1;
 }
 
-void MCS48::SEL_RB0()
+uint8_t MCS48::SEL_RB0()
 {
   PSW &= ~PSW_BITS::BS;
+
+  return 1;
 }
 
-void MCS48::SEL_RB1()
+uint8_t MCS48::SEL_RB1()
 {
   PSW |= PSW_BITS::BS;
+
+  return 1;
 }
 
-void MCS48::XRL_A_data(uint8_t data)
+uint8_t MCS48::XRL_A_data(uint8_t data)
 {
   A ^= data;
+
+  return 2;
 }
 
 // debug functions

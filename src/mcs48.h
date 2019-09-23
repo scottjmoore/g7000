@@ -49,7 +49,8 @@ public:
   void reset();
   void clock();
   void fetch();
-  void decode();
+  uint8_t decode();
+
   uint8_t readROM(uint16_t address);
   void writeROM(uint16_t address, uint8_t data);
   uint8_t readRAM(uint8_t address);
@@ -62,54 +63,54 @@ public:
 
   // Instruction set functions
 
-  void ADD_A_R(uint8_t R);
-  void ADD_A_data(uint8_t data);
-  void ADDC_A_R(uint8_t R);
-  void ADDC_A_data(uint8_t data);
-  void ANL_A_R(uint8_t R);
-  void ANL_A_data(uint8_t data);
-  void ANL_BUS_data(uint8_t data);
-  void ANL_P_data(uint8_t port, uint8_t data);
-  void ANL_P_A(uint8_t port);
+  uint8_t ADD_A_R(uint8_t R);
+  uint8_t ADD_A_data(uint8_t data);
+  uint8_t ADDC_A_R(uint8_t R);
+  uint8_t ADDC_A_data(uint8_t data);
+  uint8_t ANL_A_R(uint8_t R);
+  uint8_t ANL_A_data(uint8_t data);
+  uint8_t ANL_BUS_data(uint8_t data);
+  uint8_t ANL_P_data(uint8_t port, uint8_t data);
+  uint8_t ANL_P_A(uint8_t port);
 
-  void CALL(uint16_t address);
-  void CLR_A();
-  void CLR_C();
-  void CLR_F0();
-  void CLR_F1();
-  void CPL_A();
-  void CPL_C();
-  void CPL_F0();
-  void CPL_F1();
+  uint8_t CALL(uint16_t address);
+  uint8_t CLR_A();
+  uint8_t CLR_C();
+  uint8_t CLR_F0();
+  uint8_t CLR_F1();
+  uint8_t CPL_A();
+  uint8_t CPL_C();
+  uint8_t CPL_F0();
+  uint8_t CPL_F1();
 
-  void DA_A();
-  void DEC_A();
-  void DEC_R(uint8_t R);
-  void DIS_I();
-  void DIS_TCNTI();
-  void DJNZ_R_address(uint8_t R, uint8_t address);
+  uint8_t DA_A();
+  uint8_t DEC_A();
+  uint8_t DEC_R(uint8_t R);
+  uint8_t DIS_I();
+  uint8_t DIS_TCNTI();
+  uint8_t DJNZ_R_address(uint8_t R, uint8_t address);
 
-  void EN_I();
-  void EN_TCNTI();
-  void ENT0_CLK();
+  uint8_t EN_I();
+  uint8_t EN_TCNTI();
+  uint8_t ENT0_CLK();
 
-  void IN_A_P(uint8_t port);
-  void INC_A();
-  void INC_R(uint8_t R);
+  uint8_t IN_A_P(uint8_t port);
+  uint8_t INC_A();
+  uint8_t INC_R(uint8_t R);
 
-  void JMP(uint16_t address);
+  uint8_t JMP(uint16_t address);
 
-  void MOV_A_data(uint8_t data);
-  void MOV_A_PSW();
-  void MOV_A_RR(uint8_t reg);
-  void MOV_PSW_A();
-  void MOV_RR_A(uint8_t reg);
-  void MOV_RR_data(uint8_t reg, uint8_t data);
+  uint8_t MOV_A_data(uint8_t data);
+  uint8_t MOV_A_PSW();
+  uint8_t MOV_A_RR(uint8_t reg);
+  uint8_t MOV_PSW_A();
+  uint8_t MOV_RR_A(uint8_t reg);
+  uint8_t MOV_RR_data(uint8_t reg, uint8_t data);
 
-  void NOP();
+  uint8_t NOP();
 
-  void SEL_RB0();
-  void SEL_RB1();
+  uint8_t SEL_RB0();
+  uint8_t SEL_RB1();
 
-  void XRL_A_data(uint8_t data);
+  uint8_t XRL_A_data(uint8_t data);
 };
