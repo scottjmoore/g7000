@@ -8,7 +8,7 @@
       "args": [
         "-std=c++17",
         "-stdlib=libc++",
-        "src/g7000.cpp",
+        "src/*.cpp",
         "-o",
         "build/g7000.out",
         "--debug"
