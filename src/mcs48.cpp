@@ -11,6 +11,8 @@ MCS48::MCS48()
   {
     ROM[i] = 0x00;
   }
+
+  PSW = 0b00001000;
 }
 
 MCS48::~MCS48()
@@ -20,7 +22,7 @@ MCS48::~MCS48()
 void MCS48::reset()
 {
   PC = 0x0000;
-  PSW = 0x00;
+  PSW = 0b00001000;
 }
 
 void MCS48::clock()
@@ -43,7 +45,7 @@ void MCS48::decode()
 {
   ostringstream stringout;
 
-  stringout << setfill('0') << hex << setw(4) << PC << " : ";
+  stringout << setfill('0') << hex << setw(4) << PC - 1 << " : ";
   stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " ";
 
   switch (fetched)
@@ -106,17 +108,57 @@ void MCS48::decode()
     break;
 
   default:
+    bool decoded = false;
+
     if ((fetched & 0b00011111) == 0b00000100) // JMP address
     {
-      uint16_t address = 0x0000;
+      uint16_t address = (fetched & 0b11100000) << 3;
 
-      address = ((uint16_t)fetched & 0b11100000) << 3;
       fetch();
       address |= fetched;
       stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
       stringout << "JMP ";
       stringout << setfill('0') << hex << setw(4) << address << "H";
       JMP(address);
+      decoded = true;
+      break;
+    }
+
+    if (!decoded)
+    {
+      uint8_t reg = fetched & 0b00000111;
+
+      switch (fetched & 0b11111000)
+      {
+      case 0b00011000: // INC Rr
+        stringout << "   \t\t";
+        stringout << "INC R" << reg;
+        writeRegister(reg, readRegister(reg) + 1); // TODO : Change to opcode function
+        decoded = true;
+        break;
+      case 0b10101000: // MOV Rr, A
+        stringout << "   \t\t";
+        stringout << "MOV R" << reg << ", A";
+        writeRegister(reg, A);
+        decoded = true;
+        break;
+
+      case 0b11111000: // MOV A, Rr
+        stringout << "   \t\t";
+        stringout << "MOV A, R" << reg;
+        A = readRegister(reg);
+        decoded = true;
+        break;
+
+      case 0b10111000: // MOV Rr, #data
+        fetch();
+        stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
+        stringout << "MOV R" << reg << ", ";
+        stringout << "#0" << hex << unsigned(fetched) << "H";
+        writeRegister(reg, fetched);
+        decoded = true;
+        break;
+      }
     }
   }
 
@@ -149,6 +191,30 @@ void MCS48::writeRAM(uint8_t address, uint8_t data)
   uint16_t a = address & 0x3f;
 
   RAM[a] = data;
+}
+
+uint8_t MCS48::readRegister(uint8_t reg)
+{
+  uint8_t offset = 0x00;
+
+  if (PSW & PSW_BITS::BS)
+  {
+    offset = 0x18;
+  }
+
+  return readRAM(offset + (reg & 0b00000111));
+}
+
+void MCS48::writeRegister(uint8_t reg, uint8_t data)
+{
+  uint8_t offset = 0x00;
+
+  if (PSW & PSW_BITS::BS)
+  {
+    offset = 0x18;
+  }
+
+  writeRAM(offset + (reg & 0b00000111), data);
 }
 
 // instructions
@@ -195,6 +261,31 @@ void MCS48::MOV_A_data(uint8_t data)
   A = data;
 }
 
+void MCS48::MOV_A_PSW()
+{
+  A = PSW;
+}
+
+void MCS48::MOV_A_RR(uint8_t reg)
+{
+  A = readRegister(reg);
+}
+
+void MCS48::MOV_PSW_A()
+{
+  PSW = A;
+}
+
+void MCS48::MOV_RR_A(uint8_t reg)
+{
+  writeRegister(reg, A);
+}
+
+void MCS48::MOV_RR_data(uint8_t reg, uint8_t data)
+{
+  writeRegister(reg, data);
+}
+
 void MCS48::NOP()
 {
   // do nothing
@@ -202,12 +293,12 @@ void MCS48::NOP()
 
 void MCS48::SEL_RB0()
 {
-  PSW = PSW & ~PSW_BITS::BS;
+  PSW &= ~PSW_BITS::BS;
 }
 
 void MCS48::SEL_RB1()
 {
-  PSW = PSW | PSW_BITS::BS;
+  PSW |= PSW_BITS::BS;
 }
 
 void MCS48::XRL_A_data(uint8_t data)
@@ -234,6 +325,16 @@ void MCS48::debug()
   cout << "PSW : " << hex << "0x" << setw(2) << unsigned(PSW) << " \t0b" << bitset<8>(PSW) << endl;
 
   cout << endl;
+
+  for (int i = 0; i < 64; i++)
+  {
+    cout << hex << setw(2) << unsigned(RAM[i]) << "  ";
+
+    if ((i % 16) == 15)
+    {
+      cout << endl;
+    }
+  }
 
   cout.flags(oldFlags);
   cout.precision(oldPrec);

@@ -19,6 +19,7 @@ private:
     S1 = 1 << 1,
     S2 = 1 << 2,
     BS = 1 << 4,
+    F1 = 1 << 4,
     F0 = 1 << 5,
     AC = 1 << 6,
     CY = 1 << 7,
@@ -26,10 +27,10 @@ private:
 
   // CPU registers
 
-  uint8_t A = 0x00;     // 8 bit accumulator register
-  uint8_t TC = 0x00;    // Timer counter
-  uint8_t PSW = 0x0000; // Program status word
-  uint16_t PC = 0x0000; // Program counter
+  uint8_t A = 0x00;        // 8 bit accumulator register
+  uint8_t TC = 0x00;       // Timer counter
+  uint8_t PSW = 0b0000100; // Program status word
+  uint16_t PC = 0x0000;    // Program counter
 
   // CPU storage
 
@@ -53,6 +54,8 @@ public:
   void writeROM(uint16_t address, uint8_t data);
   uint8_t readRAM(uint8_t address);
   void writeRAM(uint8_t address, uint8_t data);
+  uint8_t readRegister(uint8_t reg);
+  void writeRegister(uint8_t reg, uint8_t data);
 
   void debug();
   string decodedOpcode() { return decoded_opcode; }
@@ -97,6 +100,11 @@ public:
   void JMP(uint16_t address);
 
   void MOV_A_data(uint8_t data);
+  void MOV_A_PSW();
+  void MOV_A_RR(uint8_t reg);
+  void MOV_PSW_A();
+  void MOV_RR_A(uint8_t reg);
+  void MOV_RR_data(uint8_t reg, uint8_t data);
 
   void NOP();
 
