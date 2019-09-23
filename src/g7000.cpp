@@ -47,7 +47,7 @@ int main()
     mcs48.clock();
     mcs48.debug();
 
-    this_thread::sleep_for(std::chrono::milliseconds(10));
+    this_thread::sleep_for(chrono::milliseconds(500));
   }
 
   return 0;

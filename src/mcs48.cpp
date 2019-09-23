@@ -132,20 +132,20 @@ void MCS48::decode()
       {
       case 0b00011000: // INC Rr
         stringout << "   \t\t";
-        stringout << "INC R" << reg;
+        stringout << "INC R" << unsigned(reg);
         writeRegister(reg, readRegister(reg) + 1); // TODO : Change to opcode function
         decoded = true;
         break;
       case 0b10101000: // MOV Rr, A
         stringout << "   \t\t";
-        stringout << "MOV R" << reg << ", A";
+        stringout << "MOV R" << unsigned(reg) << ", A";
         writeRegister(reg, A);
         decoded = true;
         break;
 
       case 0b11111000: // MOV A, Rr
         stringout << "   \t\t";
-        stringout << "MOV A, R" << reg;
+        stringout << "MOV A, R" << unsigned(reg);
         A = readRegister(reg);
         decoded = true;
         break;
@@ -153,7 +153,7 @@ void MCS48::decode()
       case 0b10111000: // MOV Rr, #data
         fetch();
         stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
-        stringout << "MOV R" << reg << ", ";
+        stringout << "MOV R" << unsigned(reg) << ", ";
         stringout << "#0" << hex << unsigned(fetched) << "H";
         writeRegister(reg, fetched);
         decoded = true;
