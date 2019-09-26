@@ -299,7 +299,7 @@ uint8_t MCS48::MOV_A_PSW()
   return 1;
 }
 
-uint8_t MCS48::MOV_A_RR(uint8_t reg)
+uint8_t MCS48::MOV_A_R(uint8_t reg)
 {
   A = readRegister(reg);
 
@@ -313,14 +313,14 @@ uint8_t MCS48::MOV_PSW_A()
   return 1;
 }
 
-uint8_t MCS48::MOV_RR_A(uint8_t reg)
+uint8_t MCS48::MOV_R_A(uint8_t reg)
 {
   writeRegister(reg, A);
 
   return 1;
 }
 
-uint8_t MCS48::MOV_RR_data(uint8_t reg, uint8_t data)
+uint8_t MCS48::MOV_R_data(uint8_t reg, uint8_t data)
 {
   writeRegister(reg, data);
 

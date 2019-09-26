@@ -67,20 +67,23 @@ public:
   // Instruction set functions
 
   uint8_t ADD_A_R(uint8_t R);
+  uint8_t ADD_A_RC(uint8_t R);
   uint8_t ADD_A_data(uint8_t data);
   uint8_t ADDC_A_R(uint8_t R);
+  uint8_t ADDC_A_RC(uint8_t R);
   uint8_t ADDC_A_data(uint8_t data);
   uint8_t ANL_A_R(uint8_t R);
+  uint8_t ANL_A_RC(uint8_t R);
   uint8_t ANL_A_data(uint8_t data);
   uint8_t ANL_BUS_data(uint8_t data);
   uint8_t ANL_P_data(uint8_t port, uint8_t data);
-  uint8_t ANL_P_A(uint8_t port);
+  uint8_t ANLD_P_A(uint8_t port);
 
   uint8_t CALL(uint16_t address);
   uint8_t CLR_A();
   uint8_t CLR_C();
-  uint8_t CLR_F0();
   uint8_t CLR_F1();
+  uint8_t CLR_F0();
   uint8_t CPL_A();
   uint8_t CPL_C();
   uint8_t CPL_F0();
@@ -100,15 +103,42 @@ public:
   uint8_t IN_A_P(uint8_t port);
   uint8_t INC_A();
   uint8_t INC_R(uint8_t R);
+  uint8_t IN_A_PO();
+  uint8_t INS_A_BUS();
 
+  uint8_t JBb(uint8_t bit, uint8_t address);
+  uint8_t JC(uint8_t address);
+  uint8_t JF0(uint8_t address);
+  uint8_t JF1(uint8_t address);
   uint8_t JMP(uint16_t address);
+  uint8_t JMPP();
+  uint8_t JNC(uint8_t address);
+  uint8_t JNI(uint8_t address);
+  uint8_t JNT0(uint8_t address);
+  uint8_t JNT1(uint8_t address);
+  uint8_t JNZ(uint8_t address);
+  uint8_t JTF(uint8_t address);
+  uint8_t JT0(uint8_t address);
+  uint8_t JT1(uint8_t address);
+  uint8_t JZ(uint8_t address);
 
   uint8_t MOV_A_data(uint8_t data);
   uint8_t MOV_A_PSW();
-  uint8_t MOV_A_RR(uint8_t reg);
+  uint8_t MOV_A_R(uint8_t reg);
+  uint8_t MOV_A_RC(uint8_t reg);
+  uint8_t MOV_A_T();
   uint8_t MOV_PSW_A();
-  uint8_t MOV_RR_A(uint8_t reg);
-  uint8_t MOV_RR_data(uint8_t reg, uint8_t data);
+  uint8_t MOV_R_A(uint8_t reg);
+  uint8_t MOV_R_data(uint8_t reg, uint8_t data);
+  uint8_t MOV_RC_A(uint8_t reg);
+  uint8_t MOV_RC_data(uint8_t reg, uint8_t data);
+  uint8_t MOV_T_A();
+  uint8_t MOVD_A_P();
+  uint8_t MOVD_P_A();
+  uint8_t MOVP_A_AC();
+  uint8_t MOVP3_A_AC();
+  uint8_t MOVX_A_RC(uint8_t reg);
+  uint8_t MOVX_RC_A(uint8_t reg);
 
   uint8_t NOP();
 
