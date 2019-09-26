@@ -2,12 +2,18 @@
 
 MCS48::MCS48()
 {
-  for (int i = 0; i < 64; i++)
+  data_memory_size = 64;
+  program_memory_size = 1024;
+
+  RAM = new uint8_t[data_memory_size];
+  ROM = new uint8_t[program_memory_size];
+
+  for (int i = 0; i < data_memory_size; i++)
   {
     RAM[i] = 0x00;
   }
 
-  for (int i = 0; i < 1024; i++)
+  for (int i = 0; i < program_memory_size; i++)
   {
     ROM[i] = 0x00;
   }
@@ -17,6 +23,8 @@ MCS48::MCS48()
 
 MCS48::~MCS48()
 {
+  delete[] ROM;
+  delete[] RAM;
 }
 
 void MCS48::reset()
@@ -176,28 +184,28 @@ uint8_t MCS48::decode()
 
 uint8_t MCS48::readROM(uint16_t address)
 {
-  uint16_t a = address & 0x07ff;
+  uint16_t a = address & (program_memory_size - 1);
 
   return ROM[a];
 }
 
 void MCS48::writeROM(uint16_t address, uint8_t data)
 {
-  uint16_t a = address & 0x07ff;
+  uint16_t a = address & (program_memory_size - 1);
 
   ROM[a] = data;
 }
 
 uint8_t MCS48::readRAM(uint8_t address)
 {
-  uint8_t a = address & 0x3f;
+  uint8_t a = address & (data_memory_size - 1);
 
   return RAM[a];
 }
 
 void MCS48::writeRAM(uint8_t address, uint8_t data)
 {
-  uint16_t a = address & 0x3f;
+  uint16_t a = address & (data_memory_size - 1);
 
   RAM[a] = data;
 }

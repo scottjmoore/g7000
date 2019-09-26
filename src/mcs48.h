@@ -34,8 +34,11 @@ private:
 
   // CPU storage
 
-  uint8_t RAM[64];
-  uint8_t ROM[1024];
+  uint16_t data_memory_size;
+  uint16_t program_memory_size;
+
+  uint8_t *RAM;
+  uint8_t *ROM;
 
   // Emulator internal state
 
