@@ -12,6 +12,7 @@ int main()
   MCS48 mcs48;
   uint16_t wa = 0x0000;
 
+  /*
   mcs48.writeROM(wa++, 0b00100111); // CLR A
   mcs48.writeROM(wa++, 0b00110111); // CPL A
   mcs48.writeROM(wa++, 0b00100111); // CLR A
@@ -37,6 +38,17 @@ int main()
   mcs48.writeROM(wa++, 0b00011100); // INC R4
   mcs48.writeROM(wa++, 0b00000100); // JMP 0
   mcs48.writeROM(wa++, 0);
+  */
+
+  mcs48.writeROM(wa++, 0b01100000); // ADD A,@R0
+  mcs48.writeROM(wa++, 0b01100001); // ADD A,@R1
+  mcs48.writeROM(wa++, 0b00011000); // INC R0
+  mcs48.writeROM(wa++, 0b00011001); // INC R1
+  mcs48.writeROM(wa++, 0b00010111); // INC A
+  mcs48.writeROM(wa++, 0b10100000); // MOV @R0, A
+  mcs48.writeROM(wa++, 0b10100001); // MOV @R1, A
+  mcs48.writeROM(wa++, 0b00000100); // JMP 0000H
+  mcs48.writeROM(wa++, 0x00);
 
   mcs48.reset();
 
@@ -47,7 +59,7 @@ int main()
     mcs48.clock();
     mcs48.debug();
 
-    this_thread::sleep_for(chrono::milliseconds(500));
+    this_thread::sleep_for(chrono::milliseconds(50));
   }
 
   return 0;

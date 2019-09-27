@@ -66,7 +66,27 @@ public:
 
   // Instruction set functions
 
+  /*
+    ADD A,R Add Register Contents to Accumulator
+      |0110|1rrr|
+      The contents of register R are added to the accumulator. Carry is affected.
+      (A) <- (A) + (R) R = 0-7
+      Example:
+        ADDREG: ADD A,R6 R=0-7 ;ADD REG 6 CONTENTS TO ACC
+  */
+
   uint8_t ADD_A_R(uint8_t R);
+
+  /*
+    ADD A,RC Add Data Memory Contents to Accumulator
+      |0110|000r|
+      The contents of the resident data memory location addressed by register Or' bits 0-5*are added to the accumulator. Carry is affected.
+      (A) <- (A) + ((R)) R = 0-1
+      Example:
+        ADDM: MOV R0, #01FH   ; MOVE '1F' HEX TO REG 0
+              ADD A, @R0      ;ADD VALUE OF LOCATION '1F' TO ACC
+  */
+
   uint8_t ADD_A_RC(uint8_t R);
   uint8_t ADD_A_data(uint8_t data);
   uint8_t ADDC_A_R(uint8_t R);

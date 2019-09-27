@@ -88,6 +88,11 @@ uint8_t MCS48::decode()
     stringout << "CPL C";
     cycles = CPL_C(); // execute instruction
     break;
+  case 0b00010111: // CPL C
+    stringout << "   \t\t";
+    stringout << "INC A";
+    cycles = INC_A(); // execute instruction
+    break;
   case 0b00100011: // MOV A, #data
     fetch();       // fetch immediate data to add to accumulator
     stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
@@ -141,7 +146,19 @@ uint8_t MCS48::decode()
 
       switch (fetched & 0b11111000)
       {
-      case 0b00011000: // INC Rr
+      case 0b01101000: // ADD A, R
+        stringout << "   \t\t";
+        stringout << "ADD A, R" << unsigned(reg);
+        cycles = ADD_A_R(reg);
+        decoded = true;
+        break;
+      case 0b01100000: // ADD A, RC
+        stringout << "   \t\t";
+        stringout << "ADD A, @R" << unsigned(reg);
+        cycles = ADD_A_RC(reg);
+        decoded = true;
+        break;
+      case 0b00011000: // INC R
         stringout << "   \t\t";
         stringout << "INC R" << unsigned(reg);
         writeRegister(reg, readRegister(reg) + 1); // TODO : Change to opcode function
@@ -161,6 +178,13 @@ uint8_t MCS48::decode()
         stringout << "MOV A, R" << unsigned(reg);
         A = readRegister(reg);
         cycles = 1;
+        decoded = true;
+        break;
+
+      case 0b10100000: // MOV @RC, A
+        stringout << "   \t\t";
+        stringout << "MOV @R" << unsigned(reg) << ", A";
+        cycles = MOV_RC_A(reg);
         decoded = true;
         break;
 
@@ -236,6 +260,61 @@ void MCS48::writeRegister(uint8_t reg, uint8_t data)
 
 // instructions
 
+/*
+    ADD A,R Add Register Contents to Accumulator
+      |0110|1rrr|
+      The contents of register Or' are added to the accumulator. Carry is affected.
+      (A) <- (A) + (R) R = 0-7
+      Example:
+        ADDREG: ADD A,R6  ; ADD REG 6 CONTENTS TO ACC
+  */
+
+uint8_t MCS48::ADD_A_R(uint8_t R)
+{
+  uint8_t PA = A;
+
+  A = A + readRegister(R);
+
+  if (A < PA)
+  {
+    PSW |= PSW_BITS::CY;
+  }
+  else
+  {
+    PSW &= ~PSW_BITS::CY;
+  }
+
+  return 1;
+}
+
+/*
+    ADD A,RC Add Data Memory Contents to Accumulator
+      |0110|000r|
+      The contents of the resident data memory location addressed by register Or' bits 0-5*are added to the accumulator. Carry is affected.
+      (A) <- (A) + ((R)) R = 0-1
+      Example:
+        ADDM: MOV R0, #01FH   ; MOVE '1F' HEX TO REG 0
+              ADD A, @R0      ;ADD VALUE OF LOCATION '1F' TO ACC
+  */
+
+uint8_t MCS48::ADD_A_RC(uint8_t R)
+{
+  uint8_t PA = A;
+
+  A = A + readRAM(readRegister(R));
+
+  if (A < PA)
+  {
+    PSW |= PSW_BITS::CY;
+  }
+  else
+  {
+    PSW &= ~PSW_BITS::CY;
+  }
+
+  return 1;
+}
+
 uint8_t MCS48::ADD_A_data(uint8_t data)
 {
   uint8_t OA = A;
@@ -274,6 +353,13 @@ uint8_t MCS48::CPL_A()
 uint8_t MCS48::CPL_C()
 {
   PSW ^= PSW_BITS::CY;
+
+  return 1;
+}
+
+uint8_t MCS48::INC_A()
+{
+  A++;
 
   return 1;
 }
@@ -323,6 +409,13 @@ uint8_t MCS48::MOV_R_A(uint8_t reg)
 uint8_t MCS48::MOV_R_data(uint8_t reg, uint8_t data)
 {
   writeRegister(reg, data);
+
+  return 2;
+}
+
+uint8_t MCS48::MOV_RC_A(uint8_t reg)
+{
+  writeRAM(readRegister(reg), A);
 
   return 2;
 }
