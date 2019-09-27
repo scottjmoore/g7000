@@ -46,20 +46,21 @@ int main()
   mcs48.writeROM(wa++, 0b00011001); // INC R1
   mcs48.writeROM(wa++, 0b00010111); // INC A
   mcs48.writeROM(wa++, 0b10100000); // MOV @R0, A
+  mcs48.writeROM(wa++, 0b00010111); // INC A
   mcs48.writeROM(wa++, 0b10100001); // MOV @R1, A
   mcs48.writeROM(wa++, 0b00000100); // JMP 0000H
   mcs48.writeROM(wa++, 0x00);
 
-  mcs48.reset();
+  mcs48.reset(); // reset cpu
 
   while (1)
   {
-    cout << "\x1B[2J\x1B[H";
+    cout << "\x1B[2J\x1B[H"; // clear console
 
-    mcs48.clock();
-    mcs48.debug();
+    mcs48.clock(); // clock cpu
+    mcs48.debug(); // output debug information
 
-    this_thread::sleep_for(chrono::milliseconds(50));
+    this_thread::sleep_for(chrono::milliseconds(50)); // wait for 50 ms
   }
 
   return 0;

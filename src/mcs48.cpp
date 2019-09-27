@@ -263,7 +263,7 @@ void MCS48::writeRegister(uint8_t reg, uint8_t data)
 /*
     ADD A,R Add Register Contents to Accumulator
       |0110|1rrr|
-      The contents of register Or' are added to the accumulator. Carry is affected.
+      The contents of register R are added to the accumulator. Carry is affected.
       (A) <- (A) + (R) R = 0-7
       Example:
         ADDREG: ADD A,R6  ; ADD REG 6 CONTENTS TO ACC
@@ -325,6 +325,84 @@ uint8_t MCS48::ADD_A_data(uint8_t data)
   {
     PSW ^= PSW_BITS::CY;
   }
+
+  return 2;
+}
+
+uint8_t MCS48::ADDC_A_RC(uint8_t R)
+{
+  uint8_t PA = A;
+  uint8_t C = PSW & PSW_BITS::CY ? 1 : 0;
+
+  A = A + readRAM(readRegister(R)) + C;
+
+  if (A < PA)
+  {
+    PSW |= PSW_BITS::CY;
+  }
+  else
+  {
+    PSW &= ~PSW_BITS::CY;
+  }
+
+  return 1;
+}
+
+uint8_t MCS48::ADDC_A_RC(uint8_t R)
+{
+  uint8_t PA = A;
+  uint8_t C = PSW & PSW_BITS::CY ? 1 : 0;
+
+  A = A + readRAM(readRegister(R)) + C;
+
+  if (A < PA)
+  {
+    PSW |= PSW_BITS::CY;
+  }
+  else
+  {
+    PSW &= ~PSW_BITS::CY;
+  }
+
+  return 1;
+}
+
+uint8_t MCS48::ADDC_A_data(uint8_t data)
+{
+  uint8_t PA = A;
+  uint8_t C = PSW & PSW_BITS::CY ? 1 : 0;
+
+  A = A + data + C;
+
+  if (A < PA) // overflow, so set carry bit (CY)
+  {
+    PSW |= PSW_BITS::CY;
+  }
+  else
+  {
+    PSW &= ~PSW_BITS::CY;
+  }
+
+  return 2;
+}
+
+uint8_t MCS48::ANL_A_R(uint8_t R)
+{
+  A = A & readRegister(R);
+
+  return 1;
+}
+
+uint8_t MCS48::ANL_A_RC(uint8_t R)
+{
+  A = A & readRAM(readRegister(R));
+
+  return 1;
+}
+
+uint8_t MCS48::ANL_A_data(uint8_t data)
+{
+  A = A & data;
 
   return 2;
 }
