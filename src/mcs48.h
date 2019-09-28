@@ -19,7 +19,6 @@ private:
     S1 = 1 << 1,
     S2 = 1 << 2,
     BS = 1 << 4,
-    F1 = 1 << 4,
     F0 = 1 << 5,
     AC = 1 << 6,
     CY = 1 << 7,
@@ -32,6 +31,11 @@ private:
   uint8_t PSW = 0b0000100; // Program status word
   uint16_t PC = 0x0000;    // Program counter
 
+  uint8_t F1 = 0b0;     // Flag 1 status bit (not stored in PSW)
+  uint8_t PORT1 = 0x00; // 8 bit port 1 bus (P10 - P17)
+  uint8_t PORT2 = 0x00; // 8 bit port 2 bus (P20 - P27)
+  uint8_t BUS = 0x00;   // 8 bit bus (D0 - D7)
+
   // CPU storage
 
   uint16_t data_memory_size;
@@ -39,6 +43,7 @@ private:
 
   uint8_t *RAM;
   uint8_t *ROM;
+  uint8_t STACK = 8;
 
   // Emulator internal state
 
@@ -50,8 +55,13 @@ public:
   ~MCS48();
 
   void reset();
+  void interrupt();
+  void timer_interrupt();
   void clock();
   void fetch();
+  void push_pc_psw();
+  void pop_pc_psw();
+  void pop_pc();
   uint8_t decode();
 
   uint8_t readROM(uint16_t address);
@@ -161,6 +171,9 @@ public:
   uint8_t MOVX_RC_A(uint8_t reg);
 
   uint8_t NOP();
+
+  uint8_t RET();
+  uint8_t RETR();
 
   uint8_t SEL_RB0();
   uint8_t SEL_RB1();

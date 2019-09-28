@@ -40,16 +40,19 @@ int main()
   mcs48.writeROM(wa++, 0);
   */
 
-  mcs48.writeROM(wa++, 0b01100000); // ADD A,@R0
-  mcs48.writeROM(wa++, 0b01100001); // ADD A,@R1
-  mcs48.writeROM(wa++, 0b00011000); // INC R0
-  mcs48.writeROM(wa++, 0b00011001); // INC R1
-  mcs48.writeROM(wa++, 0b00010111); // INC A
-  mcs48.writeROM(wa++, 0b10100000); // MOV @R0, A
-  mcs48.writeROM(wa++, 0b00010111); // INC A
-  mcs48.writeROM(wa++, 0b10100001); // MOV @R1, A
-  mcs48.writeROM(wa++, 0b00000100); // JMP 0000H
+  mcs48.writeROM(wa++, 0b10100111); // 0000H  CPL C
+  mcs48.writeROM(wa++, 0b00010100); // 0001H  CALL 0005H
+  mcs48.writeROM(wa++, 0x05);
+  mcs48.writeROM(wa++, 0b00000100); // 0003H  JMP 0000H
   mcs48.writeROM(wa++, 0x00);
+  mcs48.writeROM(wa++, 0b00010111); // 0005H  INC A
+  mcs48.writeROM(wa++, 0b10010111); // 0006H  CLR C
+  mcs48.writeROM(wa++, 0b00010100); // 0007H  CALL 000AH
+  mcs48.writeROM(wa++, 0x0a);
+  mcs48.writeROM(wa++, 0b10010011); // 0009H  RETR
+  mcs48.writeROM(wa++, 0b00010111); // 000aH  INC A
+  mcs48.writeROM(wa++, 0b10100111); // 000bH  CPL C
+  mcs48.writeROM(wa++, 0b10010011); // 000cH  RETR
 
   mcs48.reset(); // reset cpu
 
@@ -60,7 +63,7 @@ int main()
     mcs48.clock(); // clock cpu
     mcs48.debug(); // output debug information
 
-    this_thread::sleep_for(chrono::milliseconds(50)); // wait for 50 ms
+    this_thread::sleep_for(chrono::milliseconds(500)); // wait for 500 ms
   }
 
   return 0;

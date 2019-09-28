@@ -33,6 +33,16 @@ void MCS48::reset()
   PSW = 0b00001000;
 }
 
+void MCS48::interrupt()
+{
+  CALL(0x0003);
+}
+
+void MCS48::timer_interrupt()
+{
+  CALL(0x0007);
+}
+
 void MCS48::clock()
 {
   uint8_t cycles;
@@ -49,6 +59,57 @@ void MCS48::fetch()
   {
     PC = 0x0000;
   }
+}
+
+void MCS48::push_pc_psw()
+{
+  uint8_t firstbyte;
+  uint8_t secondbyte;
+  uint8_t stackpointer;
+
+  firstbyte = PC & 0b000011111111;
+  secondbyte = (PC & 0b111111111111) >> 8;
+  secondbyte |= PSW & 0b11110000;
+
+  stackpointer = (PSW & 0b00000111);
+  writeRAM(STACK + (stackpointer << 1), firstbyte);
+  writeRAM(STACK + (stackpointer << 1) + 1, secondbyte);
+
+  stackpointer++;
+
+  PSW = (PSW & 0b11111000) | (stackpointer & 0b00000111);
+}
+
+void MCS48::pop_pc_psw()
+{
+  uint8_t firstbyte;
+  uint8_t secondbyte;
+  uint8_t stackpointer;
+
+  stackpointer = (PSW & 0b00000111);
+  stackpointer--;
+
+  firstbyte = readRAM(STACK + (stackpointer << 1));
+  secondbyte = readRAM(STACK + (stackpointer << 1) + 1);
+
+  PC = (uint16_t)firstbyte | (((uint16_t)secondbyte & 0b00001111) << 8);
+  PSW = (secondbyte & 0b11110000) | (stackpointer & 0b00000111);
+}
+
+void MCS48::pop_pc()
+{
+  uint8_t firstbyte;
+  uint8_t secondbyte;
+  uint8_t stackpointer;
+
+  stackpointer = (PSW & 0b00000111);
+  stackpointer--;
+
+  firstbyte = readRAM(STACK + stackpointer);
+  secondbyte = readRAM(STACK + stackpointer + 1);
+
+  PC = (uint16_t)firstbyte | (((uint16_t)secondbyte & 0b00001111) << 8);
+  PSW = (PSW & 0b11111000) | (stackpointer & 0b00000111);
 }
 
 uint8_t MCS48::decode()
@@ -105,6 +166,16 @@ uint8_t MCS48::decode()
     stringout << "NOP";
     cycles = NOP(); // execute instruction
     break;
+  case 0b10000011: // RET
+    stringout << "   \t\t";
+    stringout << "RET";
+    cycles = RET(); // execute instruction
+    break;
+  case 0b10010011: // RETR
+    stringout << "   \t\t";
+    stringout << "RETR";
+    cycles = RETR(); // execute instruction
+    break;
   case 0b11000101: // SEL RB0
     stringout << "   \t\t";
     stringout << "SEL RB0";
@@ -126,9 +197,12 @@ uint8_t MCS48::decode()
   default:
     bool decoded = false;
 
-    if ((fetched & 0b00011111) == 0b00000100) // JMP address
+    uint16_t address;
+
+    switch ((fetched & 0b00011111))
     {
-      uint16_t address = (fetched & 0b11100000) << 3;
+    case 0b00000100: // JMP address
+      address = (fetched & 0b11100000) << 3;
 
       fetch();
       address |= fetched;
@@ -136,6 +210,17 @@ uint8_t MCS48::decode()
       stringout << "JMP ";
       stringout << setfill('0') << hex << setw(4) << address << "H";
       cycles = JMP(address);
+      decoded = true;
+      break;
+    case 0b00010100: // CALL address
+      address = (fetched & 0b11100000) << 3;
+
+      fetch();
+      address |= fetched;
+      stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
+      stringout << "CALL ";
+      stringout << setfill('0') << hex << setw(4) << address << "H";
+      cycles = CALL(address);
       decoded = true;
       break;
     }
@@ -348,25 +433,6 @@ uint8_t MCS48::ADDC_A_RC(uint8_t R)
   return 1;
 }
 
-uint8_t MCS48::ADDC_A_RC(uint8_t R)
-{
-  uint8_t PA = A;
-  uint8_t C = PSW & PSW_BITS::CY ? 1 : 0;
-
-  A = A + readRAM(readRegister(R)) + C;
-
-  if (A < PA)
-  {
-    PSW |= PSW_BITS::CY;
-  }
-  else
-  {
-    PSW &= ~PSW_BITS::CY;
-  }
-
-  return 1;
-}
-
 uint8_t MCS48::ADDC_A_data(uint8_t data)
 {
   uint8_t PA = A;
@@ -403,6 +469,15 @@ uint8_t MCS48::ANL_A_RC(uint8_t R)
 uint8_t MCS48::ANL_A_data(uint8_t data)
 {
   A = A & data;
+
+  return 2;
+}
+
+uint8_t MCS48::CALL(uint16_t address)
+{
+  push_pc_psw();
+
+  PC = address;
 
   return 2;
 }
@@ -503,6 +578,20 @@ uint8_t MCS48::NOP()
   return 1;
 }
 
+uint8_t MCS48::RET()
+{
+  pop_pc();
+
+  return 2;
+}
+
+uint8_t MCS48::RETR()
+{
+  pop_pc_psw();
+
+  return 2;
+}
+
 uint8_t MCS48::SEL_RB0()
 {
   PSW &= ~PSW_BITS::BS;
@@ -540,7 +629,17 @@ void MCS48::debug()
   cout << "PC  : " << hex << "0x" << setw(4) << PC << " \t" << endl;
   cout << "A   : " << dec << unsigned(A) << " \t" << hex << "0x" << setw(2) << unsigned(A) << " \t0b" << bitset<8>(A) << endl;
   cout << "TC  : " << dec << unsigned(TC) << " \t" << hex << "0x" << setw(2) << unsigned(TC) << " \t0b" << bitset<8>(TC) << endl;
-  cout << "PSW : " << dec << unsigned(PSW) << " \t" << hex << "0x" << setw(2) << unsigned(PSW) << " \t0b" << bitset<8>(PSW) << endl;
+  cout << "PSW : " << dec << unsigned(PSW) << " \t" << hex << "0x" << setw(2) << unsigned(PSW) << " \t0b" << bitset<8>(PSW) << " \t";
+  cout << ((PSW & PSW_BITS::CY) ? "CY " : "cy ");
+  cout << ((PSW & PSW_BITS::AC) ? "AC " : "ac ");
+  cout << ((PSW & PSW_BITS::F0) ? "F0 " : "f0 ");
+  cout << ((F1) ? "F1 " : "f1 ");
+  cout << ((PSW & PSW_BITS::BS) ? "BS " : "bs ");
+  cout << ((PSW & PSW_BITS::S2) ? "S2 " : "s2 ");
+  cout << ((PSW & PSW_BITS::S1) ? "S1 " : "s1 ");
+  cout << ((PSW & PSW_BITS::S0) ? "S0 " : "s0 ");
+  cout << endl;
+  cout << "SP  : " << dec << unsigned(PSW & 0b00000111) << " \t" << hex << "0x" << setw(2) << unsigned(PSW & 0b00000111) << " \t0b" << bitset<8>(PSW & 0b00000111) << " \t" << endl;
 
   cout << endl;
 
