@@ -31,10 +31,18 @@ private:
   uint8_t PSW = 0b0000100; // Program status word
   uint16_t PC = 0x0000;    // Program counter
 
+  uint8_t I = 0b0;      // Interrupt input
+  uint8_t T0 = 0b0;     // Test 0 input
+  uint8_t T1 = 0b0;     // Test 1 input
+  uint8_t TF = 0b0;     // Timer flag overflow
   uint8_t F1 = 0b0;     // Flag 1 status bit (not stored in PSW)
   uint8_t PORT1 = 0x00; // 8 bit port 1 bus (P10 - P17)
   uint8_t PORT2 = 0x00; // 8 bit port 2 bus (P20 - P27)
   uint8_t BUS = 0x00;   // 8 bit bus (D0 - D7)
+  uint8_t PORT4 = 0x00; // 8 bit expander port 4 bus (8243)
+  uint8_t PORT5 = 0x00; // 8 bit expander port 5 bus (8243)
+  uint8_t PORT6 = 0x00; // 8 bit expander port 6 bus (8243)
+  uint8_t PORT7 = 0x00; // 8 bit expander port 7 bus (8243)
 
   // CPU storage
 
@@ -74,74 +82,62 @@ public:
   void debug();
   string decodedOpcode() { return decoded_opcode; }
 
-  // Instruction set functions
-
-  /*
-    ADD A,R Add Register Contents to Accumulator
-      |0110|1rrr|
-      The contents of register R are added to the accumulator. Carry is affected.
-      (A) <- (A) + (R) R = 0-7
-      Example:
-        ADDREG: ADD A,R6 R=0-7 ;ADD REG 6 CONTENTS TO ACC
-  */
-
-  uint8_t ADD_A_R(uint8_t R);
-
-  /*
-    ADD A,RC Add Data Memory Contents to Accumulator
-      |0110|000r|
-      The contents of the resident data memory location addressed by register Or' bits 0-5*are added to the accumulator. Carry is affected.
-      (A) <- (A) + ((R)) R = 0-1
-      Example:
-        ADDM: MOV R0, #01FH   ; MOVE '1F' HEX TO REG 0
-              ADD A, @R0      ;ADD VALUE OF LOCATION '1F' TO ACC
-  */
-
-  uint8_t ADD_A_RC(uint8_t R);
+  uint8_t ADD_A_R(uint8_t reg);
+  uint8_t ADD_A_RC(uint8_t reg);
   uint8_t ADD_A_data(uint8_t data);
-  uint8_t ADDC_A_R(uint8_t R);
-  uint8_t ADDC_A_RC(uint8_t R);
+
+  uint8_t ADDC_A_R(uint8_t reg);
+  uint8_t ADDC_A_RC(uint8_t reg);
   uint8_t ADDC_A_data(uint8_t data);
-  uint8_t ANL_A_R(uint8_t R);
-  uint8_t ANL_A_RC(uint8_t R);
+
+  uint8_t ANL_A_R(uint8_t reg);
+  uint8_t ANL_A_RC(uint8_t reg);
   uint8_t ANL_A_data(uint8_t data);
   uint8_t ANL_BUS_data(uint8_t data);
   uint8_t ANL_P_data(uint8_t port, uint8_t data);
   uint8_t ANLD_P_A(uint8_t port);
 
   uint8_t CALL(uint16_t address);
+
   uint8_t CLR_A();
   uint8_t CLR_C();
   uint8_t CLR_F1();
   uint8_t CLR_F0();
+
   uint8_t CPL_A();
   uint8_t CPL_C();
   uint8_t CPL_F0();
   uint8_t CPL_F1();
 
   uint8_t DA_A();
+
   uint8_t DEC_A();
-  uint8_t DEC_R(uint8_t R);
+  uint8_t DEC_R(uint8_t reg);
+
   uint8_t DIS_I();
   uint8_t DIS_TCNTI();
-  uint8_t DJNZ_R_address(uint8_t R, uint8_t address);
+
+  uint8_t DJNZ_R_address(uint8_t reg, uint8_t address);
 
   uint8_t EN_I();
   uint8_t EN_TCNTI();
   uint8_t ENT0_CLK();
 
   uint8_t IN_A_P(uint8_t port);
+
   uint8_t INC_A();
-  uint8_t INC_R(uint8_t R);
-  uint8_t IN_A_PO();
+  uint8_t INC_R(uint8_t reg);
+  uint8_t INC_RC(uint8_t reg);
+
+  uint8_t IN_A_P0();
   uint8_t INS_A_BUS();
 
-  uint8_t JBb(uint8_t bit, uint8_t address);
+  uint8_t JBB(uint8_t bit, uint8_t address);
   uint8_t JC(uint8_t address);
   uint8_t JF0(uint8_t address);
   uint8_t JF1(uint8_t address);
   uint8_t JMP(uint16_t address);
-  uint8_t JMPP();
+  uint8_t JMPP_AC();
   uint8_t JNC(uint8_t address);
   uint8_t JNI(uint8_t address);
   uint8_t JNT0(uint8_t address);
@@ -172,11 +168,41 @@ public:
 
   uint8_t NOP();
 
+  uint8_t ORL_A_R(uint8_t reg);
+  uint8_t ORL_A_RC(uint8_t reg);
+  uint8_t ORL_A_data(uint8_t data);
+  uint8_t ORL_BUS_data(uint8_t data);
+  uint8_t ORL_P_data(uint8_t port, uint8_t data);
+  uint8_t ORLD_P_A(uint8_t port, uint8_t data);
+
+  uint8_t OUTL_P0_A(); // 8021 only
+  uint8_t OUTL_BUS_A();
+  uint8_t OUTL_P_A(uint8_t port);
+
   uint8_t RET();
   uint8_t RETR();
 
+  uint8_t RL_A();
+  uint8_t RLC_A();
+  uint8_t RR_A();
+  uint8_t RRC_A();
+
+  uint8_t SEL_MB0();
+  uint8_t SEL_MB1();
   uint8_t SEL_RB0();
   uint8_t SEL_RB1();
 
+  uint8_t STOP_TCNT();
+  uint8_t STRT_CNT();
+  uint8_t STRT_T();
+
+  uint8_t SWAP_A();
+
+  uint8_t XCH_A_R(uint8_t reg);
+  uint8_t XCH_A_RC(uint8_t reg);
+  uint8_t XCHD_A_RC(uint8_t reg);
+
+  uint8_t XRL_A_R(uint8_t reg);
+  uint8_t XRL_A_RC(uint8_t reg);
   uint8_t XRL_A_data(uint8_t data);
 };

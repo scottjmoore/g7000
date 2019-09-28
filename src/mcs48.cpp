@@ -414,6 +414,25 @@ uint8_t MCS48::ADD_A_data(uint8_t data)
   return 2;
 }
 
+uint8_t MCS48::ADDC_A_R(uint8_t R)
+{
+  uint8_t PA = A;
+  uint8_t C = PSW & PSW_BITS::CY ? 1 : 0;
+
+  A = A + readRegister(R) + C;
+
+  if (A < PA)
+  {
+    PSW |= PSW_BITS::CY;
+  }
+  else
+  {
+    PSW &= ~PSW_BITS::CY;
+  }
+
+  return 1;
+}
+
 uint8_t MCS48::ADDC_A_RC(uint8_t R)
 {
   uint8_t PA = A;
@@ -473,6 +492,49 @@ uint8_t MCS48::ANL_A_data(uint8_t data)
   return 2;
 }
 
+uint8_t MCS48::ANL_BUS_data(uint8_t data)
+{
+  BUS = BUS & data;
+
+  return 2;
+}
+
+uint8_t MCS48::ANL_P_data(uint8_t port, uint8_t data)
+{
+  switch (port)
+  {
+  case 1:
+    PORT1 = PORT1 & data;
+    break;
+  case 2:
+    PORT2 = PORT2 & data;
+    break;
+  }
+
+  return 2;
+}
+
+uint8_t MCS48::ANLD_P_A(uint8_t port)
+{
+  switch (port)
+  {
+  case 0:
+    PORT4 = PORT4 & (A & 0b00001111);
+    break;
+  case 1:
+    PORT5 = PORT5 & (A & 0b00001111);
+    break;
+  case 2:
+    PORT6 = PORT6 & (A & 0b00001111);
+    break;
+  case 3:
+    PORT7 = PORT7 & (A & 0b00001111);
+    break;
+  }
+
+  return 2;
+}
+
 uint8_t MCS48::CALL(uint16_t address)
 {
   push_pc_psw();
@@ -496,6 +558,20 @@ uint8_t MCS48::CLR_C()
   return 1;
 }
 
+uint8_t MCS48::CLR_F1()
+{
+  F1 = 0b0;
+
+  return 1;
+}
+
+uint8_t MCS48::CLR_F0()
+{
+  PSW = PSW & ~PSW_BITS::F0;
+
+  return 1;
+}
+
 uint8_t MCS48::CPL_A()
 {
   A = ~A;
@@ -510,6 +586,119 @@ uint8_t MCS48::CPL_C()
   return 1;
 }
 
+uint8_t MCS48::CPL_F0()
+{
+  PSW ^= PSW_BITS::F0;
+
+  return 1;
+}
+
+uint8_t MCS48::CPL_F1()
+{
+  F1 = ~F1;
+
+  return 1;
+}
+
+uint8_t MCS48::DA_A()
+{
+  uint8_t PA = A;
+  uint8_t nibble_lo = (A & 0b00001111);
+
+  if ((nibble_lo > 9) || (PSW & PSW_BITS::AC))
+  {
+    A = A + 6;
+  }
+
+  uint8_t nibble_hi = (A & 0b11110000) >> 4;
+
+  if ((nibble_hi > 9) || (PSW & PSW_BITS::CY))
+  {
+    A = A + 6;
+  }
+
+  if (A < PA)
+    PSW |= PSW_BITS::CY;
+
+  return 1;
+}
+
+uint8_t MCS48::DEC_A()
+{
+  A--;
+
+  return 1;
+}
+
+uint8_t MCS48::DEC_R(uint8_t reg)
+{
+  writeRegister(reg, readRegister(reg) - 1);
+
+  return 1;
+}
+
+uint8_t MCS48::DIS_I()
+{
+  // disable interrupts
+
+  return 1;
+}
+
+uint8_t MCS48::DIS_TCNTI()
+{
+  // disable timer/counter interrupts
+
+  return 1;
+}
+
+uint8_t MCS48::DJNZ_R_address(uint8_t reg, uint8_t address)
+{
+  DEC_R(reg);
+
+  if (readRegister(reg) != 0x00)
+  {
+    PC = (PC & 0b1111111100000000) | address;
+  }
+
+  return 2;
+}
+
+uint8_t MCS48::EN_I()
+{
+  // enable interrupts
+
+  return 1;
+}
+
+uint8_t MCS48::EN_TCNTI()
+{
+  // enable timer/counter interrupts
+
+  return 1;
+}
+
+uint8_t MCS48::ENT0_CLK()
+{
+  // enable clock output
+
+  return 1;
+}
+
+uint8_t MCS48::IN_A_P(uint8_t port)
+{
+  switch (port)
+  {
+  case 1:
+    A = PORT1;
+    break;
+  case 2:
+    A = PORT2;
+    break;
+  }
+
+  return 2;
+}
+
 uint8_t MCS48::INC_A()
 {
   A++;
@@ -517,9 +706,178 @@ uint8_t MCS48::INC_A()
   return 1;
 }
 
+uint8_t MCS48::INC_R(uint8_t reg)
+{
+  writeRegister(reg, readRegister(reg) + 1);
+
+  return 1;
+}
+
+uint8_t MCS48::INC_RC(uint8_t reg)
+{
+  uint8_t RC = readRegister(reg);
+  writeRegister(RC, readRegister(RC) + 1);
+
+  return 1;
+}
+
+uint8_t MCS48::IN_A_P0()
+{
+  A = BUS;
+
+  return 1;
+}
+
+uint8_t MCS48::INS_A_BUS()
+{
+  A = BUS;
+
+  return 2;
+}
+
+uint8_t MCS48::JBB(uint8_t bit, uint8_t address)
+{
+  uint8_t mask = 1 << bit;
+
+  if (A & mask)
+  {
+    PC = (PC & 0b1111111100000000) | address;
+  }
+
+  return 2;
+}
+
+uint8_t MCS48::JC(uint8_t address)
+{
+  if (PSW & PSW_BITS::CY)
+  {
+    PC = (PC & 0b1111111100000000) | address;
+  }
+
+  return 2;
+}
+
+uint8_t MCS48::JF0(uint8_t address)
+{
+  if (PSW & PSW_BITS::F0)
+  {
+    PC = (PC & 0b1111111100000000) | address;
+  }
+
+  return 2;
+}
+
+uint8_t MCS48::JF1(uint8_t address)
+{
+  if (F1)
+  {
+    PC = (PC & 0b1111111100000000) | address;
+  }
+
+  return 2;
+}
+
 uint8_t MCS48::JMP(uint16_t address)
 {
   PC = address;
+
+  return 2;
+}
+
+uint8_t MCS48::JMPP_AC()
+{
+  uint16_t address = (PC & 0b1111111100000000) | A;
+
+  PC = (PC & 0b1111111100000000) | readROM(address);
+
+  return 2;
+}
+
+uint8_t MCS48::JNC(uint8_t address)
+{
+  if (!(PSW & PSW_BITS::CY))
+  {
+    PC = (PC & 0b1111111100000000) | address;
+  }
+
+  return 2;
+}
+
+uint8_t MCS48::JNI(uint8_t address)
+{
+  if (!I)
+  {
+    PC = (PC & 0b1111111100000000) | address;
+  }
+
+  return 2;
+}
+
+uint8_t MCS48::JNT0(uint8_t address)
+{
+  if (!T0)
+  {
+    PC = (PC & 0b1111111100000000) | address;
+  }
+
+  return 2;
+}
+
+uint8_t MCS48::JNT1(uint8_t address)
+{
+  if (!T1)
+  {
+    PC = (PC & 0b1111111100000000) | address;
+  }
+
+  return 2;
+}
+
+uint8_t MCS48::JNZ(uint8_t address)
+{
+  if (A != 0)
+  {
+    PC = (PC & 0b1111111100000000) | address;
+  }
+
+  return 2;
+}
+
+uint8_t MCS48::JTF(uint8_t address)
+{
+  if (TF != 0)
+  {
+    PC = (PC & 0b1111111100000000) | address;
+  }
+
+  return 2;
+}
+
+uint8_t MCS48::JT0(uint8_t address)
+{
+  if (T0 != 0)
+  {
+    PC = (PC & 0b1111111100000000) | address;
+  }
+  return 2;
+}
+
+uint8_t MCS48::JT1(uint8_t address)
+{
+  if (T1 != 0)
+  {
+    PC = (PC & 0b1111111100000000) | address;
+  }
+
+  return 2;
+}
+
+uint8_t MCS48::JZ(uint8_t address)
+{
+  if (A == 0)
+  {
+    PC = (PC & 0b1111111100000000) | address;
+  }
 
   return 2;
 }
@@ -630,16 +988,16 @@ void MCS48::debug()
   cout << "A   : " << dec << unsigned(A) << " \t" << hex << "0x" << setw(2) << unsigned(A) << " \t0b" << bitset<8>(A) << endl;
   cout << "TC  : " << dec << unsigned(TC) << " \t" << hex << "0x" << setw(2) << unsigned(TC) << " \t0b" << bitset<8>(TC) << endl;
   cout << "PSW : " << dec << unsigned(PSW) << " \t" << hex << "0x" << setw(2) << unsigned(PSW) << " \t0b" << bitset<8>(PSW) << " \t";
-  cout << ((PSW & PSW_BITS::CY) ? "CY " : "cy ");
-  cout << ((PSW & PSW_BITS::AC) ? "AC " : "ac ");
-  cout << ((PSW & PSW_BITS::F0) ? "F0 " : "f0 ");
-  cout << ((F1) ? "F1 " : "f1 ");
-  cout << ((PSW & PSW_BITS::BS) ? "BS " : "bs ");
-  cout << ((PSW & PSW_BITS::S2) ? "S2 " : "s2 ");
-  cout << ((PSW & PSW_BITS::S1) ? "S1 " : "s1 ");
-  cout << ((PSW & PSW_BITS::S0) ? "S0 " : "s0 ");
+  cout << ((PSW & PSW_BITS::CY) ? "|CY|" : "|--|");
+  cout << ((PSW & PSW_BITS::AC) ? "AC|" : "--|");
+  cout << ((PSW & PSW_BITS::F0) ? "F0|" : "--|");
+  cout << ((F1) ? "F1|" : "--|");
+  cout << ((PSW & PSW_BITS::BS) ? "BS|" : "--|");
+  cout << ((PSW & PSW_BITS::S2) ? "S2|" : "--|");
+  cout << ((PSW & PSW_BITS::S1) ? "S1|" : "--|");
+  cout << ((PSW & PSW_BITS::S0) ? "S0|" : "--|");
   cout << endl;
-  cout << "SP  : " << dec << unsigned(PSW & 0b00000111) << " \t" << hex << "0x" << setw(2) << unsigned(PSW & 0b00000111) << " \t0b" << bitset<8>(PSW & 0b00000111) << " \t" << endl;
+  cout << "SP  : " << dec << unsigned(PSW & 0b00000111) << " \t" << hex << "0x" << setw(2) << unsigned(PSW & 0b00000111) << " \t0b" << bitset<3>(PSW & 0b00000111) << " \t" << endl;
 
   cout << endl;
 
