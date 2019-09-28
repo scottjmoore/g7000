@@ -903,6 +903,20 @@ uint8_t MCS48::MOV_A_R(uint8_t reg)
   return 1;
 }
 
+uint8_t MCS48::MOV_A_RC(uint8_t reg)
+{
+  A = readRegister(readRegister(reg));
+
+  return 1;
+}
+
+uint8_t MCS48::MOV_A_T()
+{
+  A = TC;
+
+  return 1;
+}
+
 uint8_t MCS48::MOV_PSW_A()
 {
   PSW = A;
@@ -927,6 +941,80 @@ uint8_t MCS48::MOV_R_data(uint8_t reg, uint8_t data)
 uint8_t MCS48::MOV_RC_A(uint8_t reg)
 {
   writeRAM(readRegister(reg), A);
+
+  return 2;
+}
+
+uint8_t MCS48::MOV_RC_data(uint8_t reg, uint8_t data)
+{
+  writeRAM(readRegister(reg), data);
+
+  return 2;
+}
+
+uint8_t MCS48::MOV_T_A()
+{
+  TC = A;
+
+  return 1;
+}
+
+uint8_t MCS48::MOVD_A_P(uint8_t port)
+{
+  switch (port)
+  {
+  case 0:
+    A = PORT4 & (A & 0b00001111);
+    break;
+  case 1:
+    A = PORT5 & (A & 0b00001111);
+    break;
+  case 2:
+    A = PORT6 & (A & 0b00001111);
+    break;
+  case 3:
+    A = PORT7 & (A & 0b00001111);
+    break;
+  }
+
+  return 2;
+}
+
+uint8_t MCS48::MOVD_P_A(uint8_t port)
+{
+  switch (port)
+  {
+  case 0:
+    PORT4 = (A & 0b00001111);
+    break;
+  case 1:
+    PORT5 = (A & 0b00001111);
+    break;
+  case 2:
+    PORT6 = (A & 0b00001111);
+    break;
+  case 3:
+    PORT7 = (A & 0b00001111);
+    break;
+  }
+
+  return 2;
+}
+
+uint8_t MCS48::MOVP_A_AC()
+{
+  uint16_t address = (PC & 0b1111111100000000) | A;
+
+  A = readROM(address);
+
+  return 2;
+}
+
+uint8_t MCS48::MOVP3_A_AC()
+{
+  uint16_t address = (0b0000001100000000) | A;
+
+  A = readROM(address);
 
   return 2;
 }

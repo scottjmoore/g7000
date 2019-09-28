@@ -159,8 +159,8 @@ public:
   uint8_t MOV_RC_A(uint8_t reg);
   uint8_t MOV_RC_data(uint8_t reg, uint8_t data);
   uint8_t MOV_T_A();
-  uint8_t MOVD_A_P();
-  uint8_t MOVD_P_A();
+  uint8_t MOVD_A_P(uint8_t port);
+  uint8_t MOVD_P_A(uint8_t port);
   uint8_t MOVP_A_AC();
   uint8_t MOVP3_A_AC();
   uint8_t MOVX_A_RC(uint8_t reg);
