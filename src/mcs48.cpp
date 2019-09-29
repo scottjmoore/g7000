@@ -129,6 +129,27 @@ uint8_t MCS48::decode()
     stringout << "#" << setfill('0') << hex << setw(2) << unsigned(fetched) << "H";
     cycles = ADD_A_data(fetched); // execute instruction
     break;
+  case 0b00010011: // ADDC A, #data
+    fetch();       // fetch immediate data to add to accumulator
+    stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
+    stringout << "ADDC A, ";
+    stringout << "#" << setfill('0') << hex << setw(2) << unsigned(fetched) << "H";
+    cycles = ADDC_A_data(fetched); // execute instruction
+    break;
+  case 0b01010011: // ANL A, #data
+    fetch();       // fetch immediate data to add to accumulator
+    stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
+    stringout << "ANL A, ";
+    stringout << "#" << setfill('0') << hex << setw(2) << unsigned(fetched) << "H";
+    cycles = ANL_A_data(fetched); // execute instruction
+    break;
+  case 0b10011000: // ANL BUS, #data
+    fetch();       // fetch immediate data to add to accumulator
+    stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
+    stringout << "ANL A, ";
+    stringout << "#" << setfill('0') << hex << setw(2) << unsigned(fetched) << "H";
+    cycles = ANL_BUS_data(fetched); // execute instruction
+    break;
   case 0b00100111: // CLR A
     stringout << "   \t\t";
     stringout << "CLR A";
@@ -138,6 +159,16 @@ uint8_t MCS48::decode()
     stringout << "   \t\t";
     stringout << "CLR C";
     cycles = CLR_C(); // execute instruction
+    break;
+  case 0b10100101: // CLR F1
+    stringout << "   \t\t";
+    stringout << "CLR F1";
+    cycles = CLR_F1(); // execute instruction
+    break;
+  case 0b10000101: // CLR F0
+    stringout << "   \t\t";
+    stringout << "CLR F0";
+    cycles = CLR_F0(); // execute instruction
     break;
   case 0b00110111: // CPL A
     stringout << "   \t\t";
@@ -149,7 +180,27 @@ uint8_t MCS48::decode()
     stringout << "CPL C";
     cycles = CPL_C(); // execute instruction
     break;
-  case 0b00010111: // CPL C
+  case 0b10010101: // CPL F0
+    stringout << "   \t\t";
+    stringout << "CPL F0";
+    cycles = CPL_F0(); // execute instruction
+    break;
+  case 0b10110101: // CPL F1
+    stringout << "   \t\t";
+    stringout << "CPL F1";
+    cycles = CPL_F1(); // execute instruction
+    break;
+  case 0b01010111: // DA A
+    stringout << "   \t\t";
+    stringout << "DA A";
+    cycles = DA_A(); // execute instruction
+    break;
+  case 0b00000111: // DEC A
+    stringout << "   \t\t";
+    stringout << "DEC A";
+    cycles = DEC_A(); // execute instruction
+    break;
+  case 0b00010111: // INC A
     stringout << "   \t\t";
     stringout << "INC A";
     cycles = INC_A(); // execute instruction
