@@ -1,9 +1,24 @@
 #include "mcs48.h"
 
-MCS48::MCS48()
+MCS48::MCS48(CPUTYPE _cputype)
 {
-  data_memory_size = 64;
-  program_memory_size = 1024;
+  cputype = _cputype;
+
+  switch (cputype)
+  {
+  case CPUTYPE::CPU8021:
+    data_memory_size = 64;
+    program_memory_size = 1024;
+    break;
+  case CPUTYPE::CPU8048:
+    data_memory_size = 64;
+    program_memory_size = 1024;
+    break;
+  case CPUTYPE::CPU8049:
+    data_memory_size = 128;
+    program_memory_size = 2048;
+    break;
+  }
 
   RAM = new uint8_t[data_memory_size];
   ROM = new uint8_t[program_memory_size];
@@ -200,6 +215,31 @@ uint8_t MCS48::decode()
     stringout << "DEC A";
     cycles = DEC_A(); // execute instruction
     break;
+  case 0b00010101: // DIS I
+    stringout << "   \t\t";
+    stringout << "DIS I";
+    cycles = DIS_I(); // execute instruction
+    break;
+  case 0b00110101: // DIS TCNTI
+    stringout << "   \t\t";
+    stringout << "DIS TCNTI";
+    cycles = DIS_TCNTI(); // execute instruction
+    break;
+  case 0b00000101: // EN I
+    stringout << "   \t\t";
+    stringout << "EN I";
+    cycles = EN_I(); // execute instruction
+    break;
+  case 0b00100101: // EN TCNTI
+    stringout << "   \t\t";
+    stringout << "EN TCNTI";
+    cycles = EN_TCNTI(); // execute instruction
+    break;
+  case 0b01110101: // ENT0 CLK
+    stringout << "   \t\t";
+    stringout << "ENT0 CLK";
+    cycles = ENT0_CLK(); // execute instruction
+    break;
   case 0b00010111: // INC A
     stringout << "   \t\t";
     stringout << "INC A";
@@ -246,11 +286,13 @@ uint8_t MCS48::decode()
     break;
 
   default:
-    bool decoded = false;
+    bool decoded = false; // was the opcode decoded?
 
-    uint16_t address;
+    uint16_t address; // storage for fetched address
+    uint8_t reg;      // storage for fetched register
+    uint8_t port;     // storage for fetched port
 
-    switch ((fetched & 0b00011111))
+    switch ((fetched & 0b00011111)) // decode opcodes with address in top 3 bits
     {
     case 0b00000100: // JMP address
       address = (fetched & 0b11100000) << 3;
@@ -276,9 +318,9 @@ uint8_t MCS48::decode()
       break;
     }
 
-    if (!decoded)
+    if (!decoded) // decode opcodes with register in bottom 3/1 bits
     {
-      uint8_t reg = fetched & 0b00000111;
+      reg = fetched & 0b00000111;
 
       switch (fetched & 0b11111000)
       {
@@ -288,32 +330,68 @@ uint8_t MCS48::decode()
         cycles = ADD_A_R(reg);
         decoded = true;
         break;
-      case 0b01100000: // ADD A, RC
+      case 0b01100000: // ADD A, @R
         stringout << "   \t\t";
         stringout << "ADD A, @R" << unsigned(reg);
         cycles = ADD_A_RC(reg);
         decoded = true;
         break;
+      case 0b01111000: // ADDC A, R
+        stringout << "   \t\t";
+        stringout << "ADDC A, R" << unsigned(reg);
+        cycles = ADDC_A_R(reg);
+        decoded = true;
+        break;
+      case 0b01110000: // ADDC A, @R
+        stringout << "   \t\t";
+        stringout << "ADDC A, @R" << unsigned(reg);
+        cycles = ADDC_A_RC(reg);
+        decoded = true;
+        break;
+      case 0b01011000: // ANL A, R
+        stringout << "   \t\t";
+        stringout << "ANL A, R" << unsigned(reg);
+        cycles = ANL_A_R(reg);
+        decoded = true;
+        break;
+      case 0b01010000: // ANL A, @R
+        stringout << "   \t\t";
+        stringout << "ANL A, @R" << unsigned(reg);
+        cycles = ANL_A_RC(reg);
+        decoded = true;
+        break;
+      case 0b11101000: // DJNZ R, address
+        fetch();
+        address = fetched;
+        stringout << "   \t\t";
+        stringout << "DJNZ R" << unsigned(reg) << ", ";
+        stringout << setfill('0') << hex << setw(4) << address << "H";
+        cycles = DJNZ_R_address(reg, address);
+        decoded = true;
+        break;
       case 0b00011000: // INC R
         stringout << "   \t\t";
         stringout << "INC R" << unsigned(reg);
-        writeRegister(reg, readRegister(reg) + 1); // TODO : Change to opcode function
-        cycles = 1;
+        cycles = INC_R(reg);
+        decoded = true;
+        break;
+      case 0b00010000: // INC @R
+        stringout << "   \t\t";
+        stringout << "INC @R" << unsigned(reg);
+        cycles = INC_RC(reg);
         decoded = true;
         break;
       case 0b10101000: // MOV Rr, A
         stringout << "   \t\t";
         stringout << "MOV R" << unsigned(reg) << ", A";
-        writeRegister(reg, A);
-        cycles = 1;
+        cycles = MOV_R_A(reg);
         decoded = true;
         break;
 
       case 0b11111000: // MOV A, Rr
         stringout << "   \t\t";
         stringout << "MOV A, R" << unsigned(reg);
-        A = readRegister(reg);
-        cycles = 1;
+        cycles = MOV_A_R(reg);
         decoded = true;
         break;
 
@@ -335,6 +413,53 @@ uint8_t MCS48::decode()
         break;
       }
     }
+
+    if (!decoded) // decode opcodes with port in bottom 2 bits
+    {
+      port = fetched & 0b00000011;
+
+      switch (fetched & 0b11111100)
+      {
+      case 0b00001000: // IN A, P
+        stringout << "   \t\t";
+        stringout << "IN A, P" << unsigned(port);
+        cycles = IN_A_P(port);
+        decoded = true;
+        break;
+      case 0b00001100: // MOVD A, P
+        stringout << "   \t\t";
+        stringout << "MOVD A, P" << unsigned(port + 4);
+        cycles = MOVD_A_P(port);
+        decoded = true;
+        break;
+      case 0b00111100: // MOVD P, A
+        stringout << "   \t\t";
+        stringout << "MOVD P" << unsigned(port + 4) << ", A";
+        cycles = MOVD_P_A(port);
+        decoded = true;
+        break;
+      case 0b10001000: // ORL P, #data
+        fetch();
+        stringout << "   \t\t";
+        stringout << "ORL P" << unsigned(port) << ", #" << setfill('0') << hex << setw(2) << unsigned(fetched) << "H";
+        cycles = ORL_P_data(port, fetched);
+        decoded = true;
+        break;
+      case 0b10001100: // ORLD P, A
+        fetch();
+        stringout << "   \t\t";
+        stringout << "ORL P" << unsigned(port) << ", A";
+        cycles = ORLD_P_A(port);
+        decoded = true;
+        break;
+      case 0b00111000: // OUTL P, A
+        stringout << "   \t\t";
+        stringout << "OUTL P" << unsigned(port) << ", A";
+        cycles = OUTL_P_A(port);
+        decoded = true;
+        break;
+      }
+    }
   }
 
   decoded_opcode = stringout.str();
@@ -344,16 +469,31 @@ uint8_t MCS48::decode()
 
 uint8_t MCS48::readROM(uint16_t address)
 {
-  uint16_t a = address & (program_memory_size - 1);
+  if (address < program_memory_size)
+  {
+    uint16_t a = address & (program_memory_size - 1);
 
-  return ROM[a];
+    return ROM[a];
+  }
+  else
+  {
+    // read from external program memory
+    return 0x00;
+  }
 }
 
 void MCS48::writeROM(uint16_t address, uint8_t data)
 {
-  uint16_t a = address & (program_memory_size - 1);
+  if (address < program_memory_size)
+  {
+    uint16_t a = address & (program_memory_size - 1);
 
-  ROM[a] = data;
+    ROM[a] = data;
+  }
+  else
+  {
+    // write to external program memory
+  }
 }
 
 uint8_t MCS48::readRAM(uint8_t address)
@@ -368,6 +508,15 @@ void MCS48::writeRAM(uint8_t address, uint8_t data)
   uint16_t a = address & (data_memory_size - 1);
 
   RAM[a] = data;
+}
+
+uint8_t MCS48::readExternalRAM(uint8_t address)
+{
+  return 0x00;
+}
+
+void MCS48::writeExternalRAM(uint8_t address, uint8_t data)
+{
 }
 
 uint8_t MCS48::readRegister(uint8_t reg)
@@ -396,15 +545,6 @@ void MCS48::writeRegister(uint8_t reg, uint8_t data)
 
 // instructions
 
-/*
-    ADD A,R Add Register Contents to Accumulator
-      |0110|1rrr|
-      The contents of register R are added to the accumulator. Carry is affected.
-      (A) <- (A) + (R) R = 0-7
-      Example:
-        ADDREG: ADD A,R6  ; ADD REG 6 CONTENTS TO ACC
-  */
-
 uint8_t MCS48::ADD_A_R(uint8_t R)
 {
   uint8_t PA = A;
@@ -422,16 +562,6 @@ uint8_t MCS48::ADD_A_R(uint8_t R)
 
   return 1;
 }
-
-/*
-    ADD A,RC Add Data Memory Contents to Accumulator
-      |0110|000r|
-      The contents of the resident data memory location addressed by register Or' bits 0-5*are added to the accumulator. Carry is affected.
-      (A) <- (A) + ((R)) R = 0-1
-      Example:
-        ADDM: MOV R0, #01FH   ; MOVE '1F' HEX TO REG 0
-              ADD A, @R0      ;ADD VALUE OF LOCATION '1F' TO ACC
-  */
 
 uint8_t MCS48::ADD_A_RC(uint8_t R)
 {
@@ -766,8 +896,8 @@ uint8_t MCS48::INC_R(uint8_t reg)
 
 uint8_t MCS48::INC_RC(uint8_t reg)
 {
-  uint8_t RC = readRegister(reg);
-  writeRegister(RC, readRegister(RC) + 1);
+  uint8_t address = readRegister(reg);
+  writeRAM(address, readRAM(address) + 1);
 
   return 1;
 }
@@ -1015,16 +1145,16 @@ uint8_t MCS48::MOVD_A_P(uint8_t port)
   switch (port)
   {
   case 0:
-    A = PORT4 & (A & 0b00001111);
+    A = PORT4 & 0b00001111;
     break;
   case 1:
-    A = PORT5 & (A & 0b00001111);
+    A = PORT5 & 0b00001111;
     break;
   case 2:
-    A = PORT6 & (A & 0b00001111);
+    A = PORT6 & 0b00001111;
     break;
   case 3:
-    A = PORT7 & (A & 0b00001111);
+    A = PORT7 & 0b00001111;
     break;
   }
 
@@ -1073,6 +1203,87 @@ uint8_t MCS48::MOVP3_A_AC()
 uint8_t MCS48::NOP()
 {
   return 1;
+}
+
+uint8_t MCS48::ORL_A_R(uint8_t reg)
+{
+  return 1;
+}
+
+uint8_t MCS48::ORL_A_RC(uint8_t reg)
+{
+  return 1;
+}
+
+uint8_t MCS48::ORL_A_data(uint8_t data)
+{
+  return 1;
+}
+
+uint8_t MCS48::ORL_BUS_data(uint8_t data)
+{
+  return 1;
+}
+
+uint8_t MCS48::ORL_P_data(uint8_t port, uint8_t data)
+{
+  switch (port)
+  {
+  case 1:
+    PORT1 |= data;
+    break;
+  case 2:
+    PORT2 |= data;
+    break;
+  }
+
+  return 2;
+}
+
+uint8_t MCS48::ORLD_P_A(uint8_t port)
+{
+  switch (port)
+  {
+  case 0:
+    PORT4 |= A & 0b1111;
+    break;
+  case 1:
+    PORT5 |= A & 0b1111;
+    break;
+  case 2:
+    PORT6 |= A & 0b1111;
+    break;
+  case 3:
+    PORT7 |= A & 0b1111;
+    break;
+  }
+
+  return 2;
+}
+
+uint8_t MCS48::OUTL_P0_A()
+{
+  return 1;
+}
+
+uint8_t MCS48::OUTL_BUS_A()
+{
+  return 1;
+}
+
+uint8_t MCS48::OUTL_P_A(uint8_t port)
+{
+  switch (port)
+  {
+  case 1:
+    PORT1 = A;
+    break;
+  case 2:
+    PORT2 = A;
+    break;
+  }
+
+  return 2;
 }
 
 uint8_t MCS48::RET()
@@ -1137,10 +1348,17 @@ void MCS48::debug()
   cout << ((PSW & PSW_BITS::S0) ? "S0|" : "--|");
   cout << endl;
   cout << "SP  : " << dec << unsigned(PSW & 0b00000111) << " \t" << hex << "0x" << setw(2) << unsigned(PSW & 0b00000111) << " \t0b" << bitset<3>(PSW & 0b00000111) << " \t" << endl;
-
+  cout << endl;
+  cout << "PORT1 : " << dec << unsigned(PORT1) << " \t" << hex << "0x" << setw(2) << unsigned(PORT1) << " \t0b" << bitset<8>(PORT1) << endl;
+  cout << "PORT2 : " << dec << unsigned(PORT2) << " \t" << hex << "0x" << setw(2) << unsigned(PORT2) << " \t0b" << bitset<8>(PORT2) << endl;
+  cout << "BUS   : " << dec << unsigned(BUS) << " \t" << hex << "0x" << setw(2) << unsigned(BUS) << " \t0b" << bitset<8>(BUS) << endl;
+  cout << "PORT4 : " << dec << unsigned(PORT4) << " \t" << hex << "0x" << setw(1) << unsigned(PORT4) << " \t0b" << bitset<4>(PORT4) << endl;
+  cout << "PORT5 : " << dec << unsigned(PORT5) << " \t" << hex << "0x" << setw(1) << unsigned(PORT5) << " \t0b" << bitset<4>(PORT5) << endl;
+  cout << "PORT6 : " << dec << unsigned(PORT6) << " \t" << hex << "0x" << setw(1) << unsigned(PORT6) << " \t0b" << bitset<4>(PORT6) << endl;
+  cout << "PORT7 : " << dec << unsigned(PORT7) << " \t" << hex << "0x" << setw(1) << unsigned(PORT7) << " \t0b" << bitset<4>(PORT7) << endl;
   cout << endl;
 
-  for (int i = 0; i < 64; i++)
+  for (int i = 0; i < data_memory_size; i++)
   {
     cout << hex << setw(2) << unsigned(RAM[i]) << "  ";
 

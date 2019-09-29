@@ -10,18 +10,26 @@ using namespace std;
 
 class MCS48
 {
+public:
+  enum CPUTYPE
+  {
+    CPU8021,
+    CPU8048,
+    CPU8049,
+  };
+
 private:
   // Program status word bits
 
   enum PSW_BITS
   {
-    S0 = 1 << 0,
-    S1 = 1 << 1,
-    S2 = 1 << 2,
-    BS = 1 << 4,
-    F0 = 1 << 5,
-    AC = 1 << 6,
-    CY = 1 << 7,
+    S0 = 1 << 0, // bit 0 of stack register
+    S1 = 1 << 1, // bit 1 of stack register
+    S2 = 1 << 2, // bit 2 of stack register
+    BS = 1 << 4, // bank switch bit
+    F0 = 1 << 5, // f0 flag bit
+    AC = 1 << 6, // auxillary carry bit
+    CY = 1 << 7, // carry bit
   };
 
   // CPU registers
@@ -31,27 +39,34 @@ private:
   uint8_t PSW = 0b0000100; // Program status word
   uint16_t PC = 0x0000;    // Program counter
 
-  uint8_t I = 0b0;      // Interrupt input
-  uint8_t T0 = 0b0;     // Test 0 input
-  uint8_t T1 = 0b0;     // Test 1 input
-  uint8_t TF = 0b0;     // Timer flag overflow
-  uint8_t F1 = 0b0;     // Flag 1 status bit (not stored in PSW)
-  uint8_t PORT1 = 0x00; // 8 bit port 1 bus (P10 - P17)
-  uint8_t PORT2 = 0x00; // 8 bit port 2 bus (P20 - P27)
-  uint8_t BUS = 0x00;   // 8 bit bus (D0 - D7)
-  uint8_t PORT4 = 0x00; // 8 bit expander port 4 bus (8243)
-  uint8_t PORT5 = 0x00; // 8 bit expander port 5 bus (8243)
-  uint8_t PORT6 = 0x00; // 8 bit expander port 6 bus (8243)
-  uint8_t PORT7 = 0x00; // 8 bit expander port 7 bus (8243)
+  uint8_t I = 0b0;  // Interrupt input
+  uint8_t T0 = 0b0; // Test 0 input
+  uint8_t T1 = 0b0; // Test 1 input
+  uint8_t TF = 0b0; // Timer flag overflow
+  uint8_t F1 = 0b0; // Flag 1 status bit (not stored in PSW)
+
+  uint8_t PORT0 = 0x00; // 8 bit port 0 bus (8021 only?)
+  uint8_t PORT1 = 0x11; // 8 bit port 1 bus (P10 - P17)
+  uint8_t PORT2 = 0x22; // 8 bit port 2 bus (P20 - P27)
+  uint8_t BUS = 0x33;   // 8 bit bus (D0 - D7)
+  uint8_t PORT4 = 0x4;  // 4 bit expander port 4 bus (8243)
+  uint8_t PORT5 = 0x5;  // 4 bit expander port 5 bus (8243)
+  uint8_t PORT6 = 0x6;  // 4 bit expander port 6 bus (8243)
+  uint8_t PORT7 = 0x7;  // 4 bit expander port 7 bus (8243)
+
+  // CPU type
+
+  CPUTYPE cputype;
 
   // CPU storage
 
-  uint16_t data_memory_size;
-  uint16_t program_memory_size;
+  uint16_t data_memory_size;    // size of internal data memory storage
+  uint16_t program_memory_size; // size of internal program memory storage
 
-  uint8_t *RAM;
-  uint8_t *ROM;
-  uint8_t STACK = 8;
+  uint8_t *RAM; // pointer to internal data memory storage
+  uint8_t *ROM; // pointer to internal program memory storage
+
+  uint8_t STACK = 8; // offset to start of stack memory in the data memory
 
   // Emulator internal state
 
@@ -59,7 +74,7 @@ private:
   string decoded_opcode;
 
 public:
-  MCS48();
+  MCS48(CPUTYPE cputype);
   ~MCS48();
 
   void reset();
@@ -70,16 +85,21 @@ public:
   void push_pc_psw();
   void pop_pc_psw();
   void pop_pc();
+
   uint8_t decode();
 
   uint8_t readROM(uint16_t address);
   void writeROM(uint16_t address, uint8_t data);
+
   uint8_t readRAM(uint8_t address);
   void writeRAM(uint8_t address, uint8_t data);
+
+  uint8_t readExternalRAM(uint8_t address);
+  void writeExternalRAM(uint8_t address, uint8_t data);
+
   uint8_t readRegister(uint8_t reg);
   void writeRegister(uint8_t reg, uint8_t data);
 
-  void debug();
   string decodedOpcode() { return decoded_opcode; }
 
   uint8_t ADD_A_R(uint8_t reg);
@@ -173,7 +193,7 @@ public:
   uint8_t ORL_A_data(uint8_t data);
   uint8_t ORL_BUS_data(uint8_t data);
   uint8_t ORL_P_data(uint8_t port, uint8_t data);
-  uint8_t ORLD_P_A(uint8_t port, uint8_t data);
+  uint8_t ORLD_P_A(uint8_t port);
 
   uint8_t OUTL_P0_A(); // 8021 only
   uint8_t OUTL_BUS_A();
@@ -205,4 +225,6 @@ public:
   uint8_t XRL_A_R(uint8_t reg);
   uint8_t XRL_A_RC(uint8_t reg);
   uint8_t XRL_A_data(uint8_t data);
+
+  void debug();
 };
