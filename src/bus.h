@@ -21,8 +21,8 @@ public:
   BUS(int _4bitbussize, int _8bitbussize, int _16bitbusize, int _32bitbussize);
   ~BUS();
 
-  void BUS::AttachTo4BitBus(int index, uint8_t *source);
-  void BUS::AttachTo8BitBus(int index, uint8_t *source);
-  void BUS::AttachTo16BitBus(int index, uint16_t *source);
-  void BUS::AttachTo32BitBus(int index, uint32_t *source);
+  void AttachTo4BitBus(int index, uint8_t *source);
+  void AttachTo8BitBus(int index, uint8_t *source);
+  void AttachTo16BitBus(int index, uint16_t *source);
+  void AttachTo32BitBus(int index, uint32_t *source);
 };
