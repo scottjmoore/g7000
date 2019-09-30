@@ -39,14 +39,14 @@ MCS48::MCS48(CPUTYPE _cputype, ::BUS &_bus)
 
   cycles = 0;
 
-  bus.AttachTo4BitBus(0, &PORT4);
-  bus.AttachTo4BitBus(1, &PORT5);
-  bus.AttachTo4BitBus(2, &PORT6);
-  bus.AttachTo4BitBus(3, &PORT7);
-  bus.AttachTo8BitBus(0, &PORT1);
-  bus.AttachTo8BitBus(1, &PORT2);
-  bus.AttachTo8BitBus(2, &BUS);
-  bus.AttachTo16BitBus(0, &PC);
+  bus.attachTo4BitBus(0, &PORT4, "PORT 4");
+  bus.attachTo4BitBus(1, &PORT5, "PORT 5");
+  bus.attachTo4BitBus(2, &PORT6, "PORT 6");
+  bus.attachTo4BitBus(3, &PORT7, "PORT 7");
+  bus.attachTo8BitBus(0, &PORT1, "PORT 1");
+  bus.attachTo8BitBus(1, &PORT2, "PORT 2");
+  bus.attachTo8BitBus(2, &BUS, "BUS");
+  bus.attachTo16BitBus(0, &PC, "PC");
 }
 
 MCS48::~MCS48()
@@ -1362,14 +1362,6 @@ void MCS48::debug()
   cout << ((PSW & PSW_BITS::S0) ? "S0|" : "--|");
   cout << endl;
   cout << "SP  : " << dec << unsigned(PSW & 0b00000111) << " \t" << hex << "0x" << setw(2) << unsigned(PSW & 0b00000111) << " \t0b" << bitset<3>(PSW & 0b00000111) << " \t" << endl;
-  cout << endl;
-  cout << "PORT1 : " << dec << unsigned(PORT1) << " \t" << hex << "0x" << setw(2) << unsigned(PORT1) << " \t0b" << bitset<8>(PORT1) << endl;
-  cout << "PORT2 : " << dec << unsigned(PORT2) << " \t" << hex << "0x" << setw(2) << unsigned(PORT2) << " \t0b" << bitset<8>(PORT2) << endl;
-  cout << "BUS   : " << dec << unsigned(BUS) << " \t" << hex << "0x" << setw(2) << unsigned(BUS) << " \t0b" << bitset<8>(BUS) << endl;
-  cout << "PORT4 : " << dec << unsigned(PORT4) << " \t" << hex << "0x" << setw(1) << unsigned(PORT4) << " \t0b" << bitset<4>(PORT4) << endl;
-  cout << "PORT5 : " << dec << unsigned(PORT5) << " \t" << hex << "0x" << setw(1) << unsigned(PORT5) << " \t0b" << bitset<4>(PORT5) << endl;
-  cout << "PORT6 : " << dec << unsigned(PORT6) << " \t" << hex << "0x" << setw(1) << unsigned(PORT6) << " \t0b" << bitset<4>(PORT6) << endl;
-  cout << "PORT7 : " << dec << unsigned(PORT7) << " \t" << hex << "0x" << setw(1) << unsigned(PORT7) << " \t0b" << bitset<4>(PORT7) << endl;
   cout << endl;
 
   for (int i = 0; i < data_memory_size; i++)

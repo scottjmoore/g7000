@@ -11,18 +11,32 @@ using namespace std;
 class BUS
 {
 private:
+  int _4bitbussize, _8bitbussize, _16bitbussize, _32bitbussize;
+
   uint8_t **_4bitbus;
   uint8_t **_8bitbus;
   uint16_t **_16bitbus;
   uint32_t **_32bitbus;
+
+  string *_4bitbusname;
+  string *_8bitbusname;
+  string *_16bitbusname;
+  string *_32bitbusname;
 
 public:
   BUS();
   BUS(int _4bitbussize, int _8bitbussize, int _16bitbusize, int _32bitbussize);
   ~BUS();
 
-  void AttachTo4BitBus(int index, uint8_t *source);
-  void AttachTo8BitBus(int index, uint8_t *source);
-  void AttachTo16BitBus(int index, uint16_t *source);
-  void AttachTo32BitBus(int index, uint32_t *source);
+  void attachTo4BitBus(int index, uint8_t *source, string name);
+  void attachTo8BitBus(int index, uint8_t *source, string name);
+  void attachTo16BitBus(int index, uint16_t *source, string name);
+  void attachTo32BitBus(int index, uint32_t *source, string name);
+
+  uint8_t *connectTo4BitBus(int index);
+  uint8_t *connectTo8BitBus(int index);
+  uint16_t *connectTo16BitBus(int index);
+  uint32_t *connectTo32BitBus(int index);
+
+  void debug();
 };

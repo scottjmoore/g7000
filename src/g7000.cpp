@@ -100,6 +100,8 @@ int main()
 
     mcs48.clock(); // clock cpu
     mcs48.debug(); // output debug information
+    cout << endl;
+    bus.debug();
 
     this_thread::sleep_for(chrono::milliseconds(500)); // wait for 500 ms
   }
