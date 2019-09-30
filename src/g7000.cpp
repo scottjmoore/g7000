@@ -9,7 +9,7 @@ using namespace std;
 
 int main()
 {
-  MCS48 mcs48(MCS48::CPUTYPE::CPU8049);
+  MCS48 mcs48(MCS48::CPUTYPE::CPU8048);
   uint16_t wa = 0x0000;
 
   /*

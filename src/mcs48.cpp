@@ -62,8 +62,6 @@ void MCS48::timer_interrupt()
 
 void MCS48::clock()
 {
-  cout << "MCS48::clock() : cycles = " << unsigned(cycles) << endl;
-
   if (cycles == 0)
   {
     fetch();
@@ -78,10 +76,7 @@ void MCS48::fetch()
 {
   fetched = readROM(PC++);
 
-  if (PC >= 0x0800)
-  {
-    PC = 0x0000;
-  }
+  PC &= 0b0000111111111111;
 }
 
 void MCS48::push_pc_psw()
