@@ -1,8 +1,10 @@
+#include "bus.h"
 #include "mcs48.h"
 
-MCS48::MCS48(CPUTYPE _cputype)
+MCS48::MCS48(CPUTYPE _cputype, ::BUS &_bus)
 {
   cputype = _cputype;
+  bus = _bus;
 
   switch (cputype)
   {
@@ -36,6 +38,15 @@ MCS48::MCS48(CPUTYPE _cputype)
   PSW = 0b00001000;
 
   cycles = 0;
+
+  bus.AttachTo4BitBus(0, &PORT4);
+  bus.AttachTo4BitBus(1, &PORT5);
+  bus.AttachTo4BitBus(2, &PORT6);
+  bus.AttachTo4BitBus(3, &PORT7);
+  bus.AttachTo8BitBus(0, &PORT1);
+  bus.AttachTo8BitBus(1, &PORT2);
+  bus.AttachTo8BitBus(2, &BUS);
+  bus.AttachTo16BitBus(0, &PC);
 }
 
 MCS48::~MCS48()

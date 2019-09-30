@@ -1,10 +1,12 @@
 #pragma once
-//#include "Bus.h"
+
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <iomanip>
 #include <bitset>
+
+#include "bus.h"
 
 using namespace std;
 
@@ -74,8 +76,10 @@ private:
   uint8_t fetched;
   string decoded_opcode;
 
+  ::BUS bus;
+
 public:
-  MCS48(CPUTYPE cputype);
+  MCS48(CPUTYPE _cputype, ::BUS &_bus);
   ~MCS48();
 
   void reset();

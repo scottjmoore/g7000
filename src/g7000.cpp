@@ -3,13 +3,16 @@
 #include <string>
 #include <chrono>
 #include <thread>
+
+#include "bus.h"
 #include "mcs48.h"
 
 using namespace std;
 
 int main()
 {
-  MCS48 mcs48(MCS48::CPUTYPE::CPU8048);
+  BUS bus(4, 3, 1, 0);
+  MCS48 mcs48(MCS48::CPUTYPE::CPU8048, bus);
   uint16_t wa = 0x0000;
 
   /*
