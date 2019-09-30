@@ -34,6 +34,8 @@ MCS48::MCS48(CPUTYPE _cputype)
   }
 
   PSW = 0b00001000;
+
+  cycles = 0;
 }
 
 MCS48::~MCS48()
@@ -60,10 +62,16 @@ void MCS48::timer_interrupt()
 
 void MCS48::clock()
 {
-  uint8_t cycles;
+  cout << "MCS48::clock() : cycles = " << unsigned(cycles) << endl;
 
-  fetch();
-  cycles = decode();
+  if (cycles == 0)
+  {
+    fetch();
+
+    cycles = decode();
+  }
+
+  --cycles;
 }
 
 void MCS48::fetch()
@@ -129,7 +137,7 @@ void MCS48::pop_pc()
 
 uint8_t MCS48::decode()
 {
-  uint8_t cycles = 0x00;
+  uint8_t cycles = 0;
   ostringstream stringout;
 
   stringout << setfill('0') << hex << setw(4) << PC - 1 << " : ";
