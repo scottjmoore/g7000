@@ -73,14 +73,12 @@ void MCS48::timer_interrupt()
 
 void MCS48::clock()
 {
-  if (cycles == 0)
+  if (--cycles <= 0)
   {
     fetch();
 
     cycles = decode();
   }
-
-  --cycles;
 }
 
 void MCS48::fetch()

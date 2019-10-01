@@ -99,9 +99,9 @@ int main()
     cout << "\x1B[2J\x1B[H"; // clear console
 
     mcs48.clock(); // clock cpu
-    mcs48.debug(); // output debug information
+    mcs48.debug(); // output mcs-48 debug information
     cout << endl;
-    bus.debug();
+    bus.debug(); // output bus debug information
 
     this_thread::sleep_for(chrono::milliseconds(500)); // wait for 500 ms
   }

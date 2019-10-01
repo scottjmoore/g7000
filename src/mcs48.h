@@ -72,7 +72,7 @@ private:
 
   // Emulator internal state
 
-  uint8_t cycles;
+  int cycles;
   uint8_t fetched;
   string decoded_opcode;
 
