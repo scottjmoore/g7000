@@ -59,6 +59,13 @@ void MCS48::reset()
 {
   PC = 0x0000;
   PSW = 0b00001000;
+  SEL_RB0();
+  SEL_MB0();
+  DIS_I();
+  STOP_TCNT();
+  TC = 0x00;
+  F1 = 0b0;
+  DIS_TCNTI();
 }
 
 void MCS48::interrupt()
