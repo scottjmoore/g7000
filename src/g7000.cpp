@@ -103,7 +103,7 @@ int main()
     cout << endl;
     bus.debug(); // output bus debug information
 
-    this_thread::sleep_for(chrono::milliseconds(50)); // wait for 500 ms
+    this_thread::sleep_for(chrono::milliseconds(5)); // wait for 500 ms
   }
 
   return 0;
