@@ -38,5 +38,8 @@ public:
   uint16_t *connectTo16BitBus(int index);
   uint32_t *connectTo32BitBus(int index);
 
+  uint8_t read_8_16(uint16_t address);
+  void write_8_16(uint16_t address, uint8_t data);
+
   void debug();
 };

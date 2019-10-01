@@ -496,8 +496,7 @@ uint8_t MCS48::readROM(uint16_t address)
   }
   else
   {
-    // read from external program memory
-    return 0x00;
+    return bus.read_8_16(address);
   }
 }
 
@@ -511,7 +510,7 @@ void MCS48::writeROM(uint16_t address, uint8_t data)
   }
   else
   {
-    // write to external program memory
+    bus.write_8_16(address, data);
   }
 }
 
@@ -1329,6 +1328,27 @@ uint8_t MCS48::SEL_RB0()
 uint8_t MCS48::SEL_RB1()
 {
   PSW |= PSW_BITS::BS;
+
+  return 1;
+}
+
+uint8_t MCS48::SEL_MB0()
+{
+  // TO DO
+
+  return 1;
+}
+
+uint8_t MCS48::SEL_MB1()
+{
+  // TO DO
+
+  return 1;
+}
+
+uint8_t MCS48::STOP_TCNT()
+{
+  // TO DO
 
   return 1;
 }

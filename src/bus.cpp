@@ -66,6 +66,13 @@ uint16_t *BUS::connectTo16BitBus(int index) { return _16bitbus[index]; }
 
 uint32_t *BUS::connectTo32BitBus(int index) { return _32bitbus[index]; }
 
+uint8_t BUS::read_8_16(uint16_t address)
+{
+  return 0xff;
+}
+
+void BUS::write_8_16(uint16_t address, uint8_t data) {}
+
 void BUS::debug()
 {
   int i;
