@@ -65,17 +65,24 @@ void MCS48::reset()
   STOP_TCNT();
   TC = 0x00;
   F1 = 0b0;
+  DBF = 0b0;
   DIS_TCNTI();
 }
 
 void MCS48::interrupt()
 {
-  CALL(0x0003);
+  if (IE)
+  {
+    CALL(0x0003);
+  }
 }
 
 void MCS48::timer_interrupt()
 {
-  CALL(0x0007);
+  if (TCNTIE)
+  {
+    CALL(0x0007);
+  }
 }
 
 void MCS48::clock()
@@ -86,13 +93,34 @@ void MCS48::clock()
 
     cycles = decode();
   }
+
+  if (tc_mode == TC_MODE::TIMER)
+  {
+    if (--t_prescaler <= 0)
+    {
+      uint8_t PTC = TC;
+
+      ++TC;
+      t_prescaler = 32;
+
+      if (TC < PTC)
+      {
+        TF = 0b1;
+        timer_interrupt();
+      }
+    }
+  }
 }
 
 void MCS48::fetch()
 {
-  fetched = readROM(PC++);
+  uint16_t PC12 = (PC & 0x800);
 
-  PC &= 0b0000111111111111;
+  fetched = readROM(PC);
+
+  ++PC;
+  PC &= 0b1111111111;
+  PC |= PC12;
 }
 
 void MCS48::push_pc_psw()
@@ -264,6 +292,16 @@ uint8_t MCS48::decode()
     stringout << "INC A";
     cycles = INC_A(); // execute instruction
     break;
+  case 0b00001000: // INS A, BUS
+    stringout << "   \t\t";
+    stringout << "INS A, BUS";
+    cycles = INS_A_BUS(); // execute instruction
+    break;
+  case 0b10110011: // JMPP @A
+    stringout << "   \t\t";
+    stringout << "JMPP @A";
+    cycles = JMPP_AC(); // execute instruction
+    break;
   case 0b00100011: // MOV A, #data
     fetch();       // fetch immediate data to add to accumulator
     stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
@@ -271,10 +309,59 @@ uint8_t MCS48::decode()
     stringout << "#" << setfill('0') << hex << setw(2) << unsigned(fetched) << "H";
     cycles = MOV_A_data(fetched); // execute instruction
     break;
+  case 0b11000111: // MOV A, PSW
+    stringout << "   \t\t";
+    stringout << "MOV A, PSW";
+    cycles = MOV_A_PSW(); // execute instruction
+    break;
+  case 0b01000010: // MOV A, T
+    stringout << "   \t\t";
+    stringout << "MOV A, T";
+    cycles = MOV_A_T(); // execute instruction
+    break;
+  case 0b11010111: // MOV PSW, A
+    stringout << "   \t\t";
+    stringout << "MOV PSW, A";
+    cycles = MOV_PSW_A(); // execute instruction
+    break;
+  case 0b01100010: // MOV T, A
+    stringout << "   \t\t";
+    stringout << "MOV T, A";
+    cycles = MOV_T_A(); // execute instruction
+    break;
+  case 0b11100011: // MOVP3 A, @A
+    stringout << "   \t\t";
+    stringout << "MOVP3 A, @A";
+    cycles = MOVP3_A_AC(); // execute instruction
+    break;
+  case 0b10100011: // MOVP A, @A
+    stringout << "   \t\t";
+    stringout << "MOVP A, @A";
+    cycles = MOVP_A_AC(); // execute instruction
+    break;
   case 0b00000000: // NOP
     stringout << "   \t\t";
     stringout << "NOP";
     cycles = NOP(); // execute instruction
+    break;
+  case 0b01000011: // ORL A, #data
+    fetch();       // fetch immediate data to add to accumulator
+    stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
+    stringout << "ORL A, ";
+    stringout << "#" << setfill('0') << hex << setw(2) << unsigned(fetched) << "H";
+    cycles = ORL_A_data(fetched); // execute instruction
+    break;
+  case 0b10001000: // ORL BUS, #data
+    fetch();       // fetch immediate data to add to accumulator
+    stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
+    stringout << "ORL BUS, ";
+    stringout << "#" << setfill('0') << hex << setw(2) << unsigned(fetched) << "H";
+    cycles = ORL_BUS_data(fetched); // execute instruction
+    break;
+  case 0b00000010: // OUTL BUS, A
+    stringout << "   \t\t";
+    stringout << "OUTL BUS, A";
+    cycles = OUTL_BUS_A(); // execute instruction
     break;
   case 0b10000011: // RET
     stringout << "   \t\t";
@@ -286,6 +373,36 @@ uint8_t MCS48::decode()
     stringout << "RETR";
     cycles = RETR(); // execute instruction
     break;
+  case 0b11100111: // RL A
+    stringout << "   \t\t";
+    stringout << "RL A";
+    cycles = RL_A(); // execute instruction
+    break;
+  case 0b11110111: // RLC A
+    stringout << "   \t\t";
+    stringout << "RLC A";
+    cycles = RLC_A(); // execute instruction
+    break;
+  case 0b01110111: // RR A
+    stringout << "   \t\t";
+    stringout << "RR A";
+    cycles = RR_A(); // execute instruction
+    break;
+  case 0b01100111: // RRC A
+    stringout << "   \t\t";
+    stringout << "RRC A";
+    cycles = RRC_A(); // execute instruction
+    break;
+  case 0b11100101: // SEL MB0
+    stringout << "   \t\t";
+    stringout << "SEL MB0";
+    cycles = SEL_MB0(); // execute instruction
+    break;
+  case 0b11110101: // SEL MB1
+    stringout << "   \t\t";
+    stringout << "SEL MB1";
+    cycles = SEL_MB1(); // execute instruction
+    break;
   case 0b11000101: // SEL RB0
     stringout << "   \t\t";
     stringout << "SEL RB0";
@@ -295,6 +412,26 @@ uint8_t MCS48::decode()
     stringout << "   \t\t";
     stringout << "SEL RB1";
     cycles = SEL_RB1(); // execute instruction
+    break;
+  case 0b01100101: // STOP TCNT
+    stringout << "   \t\t";
+    stringout << "STOP TCNT";
+    cycles = STOP_TCNT(); // execute instruction
+    break;
+  case 0b01000101: // STRT CNT
+    stringout << "   \t\t";
+    stringout << "STRT TCNT";
+    cycles = STRT_CNT(); // execute instruction
+    break;
+  case 0b01010101: // STRT T
+    stringout << "   \t\t";
+    stringout << "STRT T";
+    cycles = STRT_T(); // execute instruction
+    break;
+  case 0b01000111: // SWAP A
+    stringout << "   \t\t";
+    stringout << "SWAP A";
+    cycles = SWAP_A(); // execute instruction
     break;
   case 0b11010011: // XLR A, #data
     fetch();       // fetch immediate data to add to accumulator
@@ -601,11 +738,11 @@ uint8_t MCS48::ADD_A_RC(uint8_t R)
 
 uint8_t MCS48::ADD_A_data(uint8_t data)
 {
-  uint8_t OA = A;
+  uint8_t PA = A;
 
   A = A + data;
 
-  if (A < OA) // overflow, so set carry bit (CY)
+  if (A < PA) // overflow, so set carry bit (CY)
   {
     PSW ^= PSW_BITS::CY;
   }
@@ -738,7 +875,7 @@ uint8_t MCS48::CALL(uint16_t address)
 {
   push_pc_psw();
 
-  PC = address;
+  PC = (address & 0b11111111111) | DBF << 11;
 
   return 2;
 }
@@ -824,7 +961,7 @@ uint8_t MCS48::DA_A()
 
 uint8_t MCS48::DEC_A()
 {
-  A--;
+  --A;
 
   return 1;
 }
@@ -838,14 +975,14 @@ uint8_t MCS48::DEC_R(uint8_t reg)
 
 uint8_t MCS48::DIS_I()
 {
-  // disable interrupts
+  IE = 0b0;
 
   return 1;
 }
 
 uint8_t MCS48::DIS_TCNTI()
 {
-  // disable timer/counter interrupts
+  TCNTIE = 0b0;
 
   return 1;
 }
@@ -864,14 +1001,14 @@ uint8_t MCS48::DJNZ_R_address(uint8_t reg, uint8_t address)
 
 uint8_t MCS48::EN_I()
 {
-  // enable interrupts
+  IE = 0b1;
 
   return 1;
 }
 
 uint8_t MCS48::EN_TCNTI()
 {
-  // enable timer/counter interrupts
+  TCNTIE = 0b1;
 
   return 1;
 }
@@ -900,7 +1037,7 @@ uint8_t MCS48::IN_A_P(uint8_t port)
 
 uint8_t MCS48::INC_A()
 {
-  A++;
+  ++A;
 
   return 1;
 }
@@ -978,7 +1115,7 @@ uint8_t MCS48::JF1(uint8_t address)
 
 uint8_t MCS48::JMP(uint16_t address)
 {
-  PC = address;
+  PC = (address & 0b11111111111) | DBF << 11;
 
   return 2;
 }
@@ -1286,7 +1423,9 @@ uint8_t MCS48::OUTL_P0_A()
 
 uint8_t MCS48::OUTL_BUS_A()
 {
-  return 1;
+  BUS = A;
+
+  return 2;
 }
 
 uint8_t MCS48::OUTL_P_A(uint8_t port)
@@ -1318,6 +1457,72 @@ uint8_t MCS48::RETR()
   return 2;
 }
 
+uint8_t MCS48::RL_A()
+{
+  uint8_t NA = A << 1;
+
+  NA |= A >> 7;
+  A = NA;
+
+  return 1;
+}
+
+uint8_t MCS48::RLC_A()
+{
+  uint8_t NA = A << 1;
+
+  if (PSW & PSW_BITS::CY)
+  {
+    NA |= 0b1;
+  }
+
+  if (A & 0b10000000)
+  {
+    PSW |= PSW_BITS::CY;
+  }
+  else
+  {
+    PSW &= ~PSW_BITS::CY;
+  }
+
+  A = NA;
+
+  return 1;
+}
+
+uint8_t MCS48::RR_A()
+{
+  uint8_t NA = A >> 1;
+
+  NA |= A << 7;
+  A = NA;
+
+  return 1;
+}
+
+uint8_t MCS48::RRC_A()
+{
+  uint8_t NA = A >> 1;
+
+  if (PSW & PSW_BITS::CY)
+  {
+    NA |= 0b10000000;
+  }
+
+  if (A & 0b1)
+  {
+    PSW |= PSW_BITS::CY;
+  }
+  else
+  {
+    PSW &= ~PSW_BITS::CY;
+  }
+
+  A = NA;
+
+  return 1;
+}
+
 uint8_t MCS48::SEL_RB0()
 {
   PSW &= ~PSW_BITS::BS;
@@ -1334,21 +1539,45 @@ uint8_t MCS48::SEL_RB1()
 
 uint8_t MCS48::SEL_MB0()
 {
-  // TO DO
+  DBF = 0;
 
   return 1;
 }
 
 uint8_t MCS48::SEL_MB1()
 {
-  // TO DO
+  DBF = 1;
 
   return 1;
 }
 
 uint8_t MCS48::STOP_TCNT()
 {
+  tc_mode = TC_MODE::STOPPED;
+
+  return 1;
+}
+
+uint8_t MCS48::STRT_CNT()
+{
   // TO DO
+
+  return 1;
+}
+
+uint8_t MCS48::STRT_T()
+{
+  tc_mode = TC_MODE::TIMER;
+  t_prescaler = 32;
+
+  return 1;
+}
+
+uint8_t MCS48::SWAP_A()
+{
+  uint8_t NA = (A >> 4) | (A << 4);
+
+  A = NA;
 
   return 1;
 }
@@ -1386,6 +1615,7 @@ void MCS48::debug()
   cout << ((PSW & PSW_BITS::S1) ? "S1|" : "--|");
   cout << ((PSW & PSW_BITS::S0) ? "S0|" : "--|");
   cout << endl;
+  cout << "DBF : " << dec << unsigned(DBF) << " \t" << hex << "0x" << setw(1) << unsigned(DBF) << " \t0b" << bitset<1>(DBF) << " \t" << endl;
   cout << "SP  : " << dec << unsigned(PSW & 0b00000111) << " \t" << hex << "0x" << setw(2) << unsigned(PSW & 0b00000111) << " \t0b" << bitset<3>(PSW & 0b00000111) << " \t" << endl;
   cout << endl;
 

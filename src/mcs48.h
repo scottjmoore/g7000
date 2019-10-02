@@ -34,27 +34,37 @@ private:
     CY = 1 << 7, // carry bit
   };
 
+  enum TC_MODE
+  {
+    STOPPED,
+    TIMER,
+    COUNTER
+  };
+
   // CPU registers
 
   uint8_t A = 0x00;        // 8 bit accumulator register
-  uint8_t TC = 0x00;       // Timer counter
+  uint8_t TC = 0x00;       // Timer/counter
   uint8_t PSW = 0b0000100; // Program status word
   uint16_t PC = 0x0000;    // Program counter
 
-  uint8_t I = 0b0;  // Interrupt input
-  uint8_t T0 = 0b0; // Test 0 input
-  uint8_t T1 = 0b0; // Test 1 input
-  uint8_t TF = 0b0; // Timer flag overflow
-  uint8_t F1 = 0b0; // Flag 1 status bit (not stored in PSW)
+  uint8_t I = 0b0;      // Interrupt input
+  uint8_t T0 = 0b0;     // Test 0 input
+  uint8_t T1 = 0b0;     // Test 1 input
+  uint8_t TF = 0b0;     // Timer flag overflow
+  uint8_t F1 = 0b0;     // Flag 1 status bit (not stored in PSW)
+  uint8_t DBF = 0b0;    // Memory bank switch
+  uint8_t IE = 0b0;     // Interrupt enabled
+  uint8_t TCNTIE = 0b0; // Timer/counter interrupt enabled
 
   uint8_t PORT0 = 0x00; // 8 bit port 0 bus (8021 only?)
-  uint8_t PORT1 = 0x11; // 8 bit port 1 bus (P10 - P17)
-  uint8_t PORT2 = 0x22; // 8 bit port 2 bus (P20 - P27)
-  uint8_t BUS = 0x33;   // 8 bit bus (D0 - D7)
-  uint8_t PORT4 = 0x4;  // 4 bit expander port 4 bus (8243)
-  uint8_t PORT5 = 0x5;  // 4 bit expander port 5 bus (8243)
-  uint8_t PORT6 = 0x6;  // 4 bit expander port 6 bus (8243)
-  uint8_t PORT7 = 0x7;  // 4 bit expander port 7 bus (8243)
+  uint8_t PORT1 = 0x00; // 8 bit port 1 bus (P10 - P17)
+  uint8_t PORT2 = 0x00; // 8 bit port 2 bus (P20 - P27)
+  uint8_t BUS = 0x00;   // 8 bit bus (D0 - D7)
+  uint8_t PORT4 = 0x0;  // 4 bit expander port 4 bus (8243)
+  uint8_t PORT5 = 0x0;  // 4 bit expander port 5 bus (8243)
+  uint8_t PORT6 = 0x0;  // 4 bit expander port 6 bus (8243)
+  uint8_t PORT7 = 0x0;  // 4 bit expander port 7 bus (8243)
 
   // CPU type
 
@@ -75,6 +85,8 @@ private:
   int cycles;
   uint8_t fetched;
   string decoded_opcode;
+  TC_MODE tc_mode = TC_MODE::STOPPED; // Timer/Counter mode
+  uint8_t t_prescaler = 0x00;         // Timer pre scaler counter (32 cycles per timer tick)
 
   ::BUS bus;
 

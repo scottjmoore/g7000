@@ -66,20 +66,95 @@ int main()
   // mcs48.writeROM(wa++, 0b11101011); // DJNZ R3
   // mcs48.writeROM(wa++, 0x04);       // 0004H
 
-  mcs48.writeROM(wa++, 0b00001001); // IN A, P1
-  mcs48.writeROM(wa++, 0b00001010); // IN A, P2
-  mcs48.writeROM(wa++, 0b00001100); // MOVD A, P4
-  mcs48.writeROM(wa++, 0b00001101); // MOVD A, P5
-  mcs48.writeROM(wa++, 0b00001110); // MOVD A, P6
-  mcs48.writeROM(wa++, 0b00001111); // MOVD A, P7
+  // mcs48.writeROM(wa++, 0b00001001); // IN A, P1
+  // mcs48.writeROM(wa++, 0b00001010); // IN A, P2
+  // mcs48.writeROM(wa++, 0b00001000); // INS A, BUS
+  // mcs48.writeROM(wa++, 0b00001100); // MOVD A, P4
+  // mcs48.writeROM(wa++, 0b00001101); // MOVD A, P5
+  // mcs48.writeROM(wa++, 0b00001110); // MOVD A, P6
+  // mcs48.writeROM(wa++, 0b00001111); // MOVD A, P7
+  // mcs48.writeROM(wa++, 0b00100011); // MOV A,
+  // mcs48.writeROM(wa++, 0x0f);       // #0fH
+  // mcs48.writeROM(wa++, 0b00111100); // MOVD P4, A
+  // mcs48.writeROM(wa++, 0b00111101); // MOVD P5, A
+  // mcs48.writeROM(wa++, 0b00111110); // MOVD P6, A
+  // mcs48.writeROM(wa++, 0b00111111); // MOVD P7, A
+  // mcs48.writeROM(wa++, 0b00111001); // OUTL P1, A
+  // mcs48.writeROM(wa++, 0b00111010); // OUTL P2, A
+  // mcs48.writeROM(wa++, 0b00000010); // OUTL BUS, A
+  // mcs48.writeROM(wa++, 0b01000111); // SWAP A
+  // mcs48.writeROM(wa++, 0b00111100); // MOVD P4, A
+  // mcs48.writeROM(wa++, 0b00111101); // MOVD P5, A
+  // mcs48.writeROM(wa++, 0b00111110); // MOVD P6, A
+  // mcs48.writeROM(wa++, 0b00111111); // MOVD P7, A
+  // mcs48.writeROM(wa++, 0b00111001); // OUTL P1, A
+  // mcs48.writeROM(wa++, 0b00111010); // OUTL P2, A
+  // mcs48.writeROM(wa++, 0b00000010); // OUTL BUS, A
+
+  // mcs48.writeROM(wa++, 0b00100011); // MOV A,
+  // mcs48.writeROM(wa++, 0x01);       // #01H
+  // mcs48.writeROM(wa++, 0b11100111); // RL A,
+  // mcs48.writeROM(wa++, 0b11100111); // RL A,
+  // mcs48.writeROM(wa++, 0b11100111); // RL A,
+  // mcs48.writeROM(wa++, 0b11100111); // RL A,
+  // mcs48.writeROM(wa++, 0b11100111); // RL A,
+  // mcs48.writeROM(wa++, 0b11100111); // RL A,
+  // mcs48.writeROM(wa++, 0b11100111); // RL A,
+  // mcs48.writeROM(wa++, 0b11100111); // RL A,
+  // mcs48.writeROM(wa++, 0b00100011); // MOV A,
+  // mcs48.writeROM(wa++, 0x80);       // #80H
+  // mcs48.writeROM(wa++, 0b01110111); // RR A,
+  // mcs48.writeROM(wa++, 0b01110111); // RR A,
+  // mcs48.writeROM(wa++, 0b01110111); // RR A,
+  // mcs48.writeROM(wa++, 0b01110111); // RR A,
+  // mcs48.writeROM(wa++, 0b01110111); // RR A,
+  // mcs48.writeROM(wa++, 0b01110111); // RR A,
+  // mcs48.writeROM(wa++, 0b01110111); // RR A,
+  // mcs48.writeROM(wa++, 0b01110111); // RR A,
+
+  // mcs48.writeROM(wa++, 0b00100011); // MOV A,
+  // mcs48.writeROM(wa++, 0x01);       // #01H
+  // mcs48.writeROM(wa++, 0b11110111); // RLC A,
+  // mcs48.writeROM(wa++, 0b11110111); // RLC A,
+  // mcs48.writeROM(wa++, 0b11110111); // RLC A,
+  // mcs48.writeROM(wa++, 0b11110111); // RLC A,
+  // mcs48.writeROM(wa++, 0b11110111); // RLC A,
+  // mcs48.writeROM(wa++, 0b11110111); // RLC A,
+  // mcs48.writeROM(wa++, 0b11110111); // RLC A,
+  // mcs48.writeROM(wa++, 0b11110111); // RLC A,
+  // mcs48.writeROM(wa++, 0b11110111); // RLC A,
+  // mcs48.writeROM(wa++, 0b00100011); // MOV A,
+  // mcs48.writeROM(wa++, 0x80);       // #80H
+  // mcs48.writeROM(wa++, 0b01100111); // RRC A,
+  // mcs48.writeROM(wa++, 0b01100111); // RRC A,
+  // mcs48.writeROM(wa++, 0b01100111); // RRC A,
+  // mcs48.writeROM(wa++, 0b01100111); // RRC A,
+  // mcs48.writeROM(wa++, 0b01100111); // RRC A,
+  // mcs48.writeROM(wa++, 0b01100111); // RRC A,
+  // mcs48.writeROM(wa++, 0b01100111); // RRC A,
+  // mcs48.writeROM(wa++, 0b01100111); // RRC A,
+  // mcs48.writeROM(wa++, 0b01100111); // RRC A,
+
+  // mcs48.writeROM(wa++, 0b11100101); // SEL MB0
+  // mcs48.writeROM(wa++, 0b00000100); // JMP 0004H
+  // mcs48.writeROM(wa++, 0x04);
+  // mcs48.writeROM(wa++, 0x00);       // NOP
+  // mcs48.writeROM(wa++, 0b11110101); // SEL MB1
+  // mcs48.writeROM(wa++, 0b00000100); // JMP 0800H
+  // mcs48.writeROM(wa++, 0x00);
+
+  mcs48.writeROM(wa++, 0b00000000); // NOP
+  mcs48.writeROM(wa++, 0b00000000); // NOP
+  mcs48.writeROM(wa++, 0b00000000); // NOP
+  mcs48.writeROM(wa++, 0b00000000); // NOP
+  mcs48.writeROM(wa++, 0b00000000); // NOP
+  mcs48.writeROM(wa++, 0b00000000); // NOP
+  mcs48.writeROM(wa++, 0b00000000); // NOP
   mcs48.writeROM(wa++, 0b00100011); // MOV A,
-  mcs48.writeROM(wa++, 0x00);       // #00H
-  mcs48.writeROM(wa++, 0b00111100); // MOVD P4, A
-  mcs48.writeROM(wa++, 0b00111101); // MOVD P5, A
-  mcs48.writeROM(wa++, 0b00111110); // MOVD P6, A
-  mcs48.writeROM(wa++, 0b00111111); // MOVD P7, A
-  mcs48.writeROM(wa++, 0b00111001); // OUTL P1, A
-  mcs48.writeROM(wa++, 0b00111010); // OUTL P2, A
+  mcs48.writeROM(wa++, 0xff);       // #FFH
+  mcs48.writeROM(wa++, 0b01100010); // MOV T, A
+  mcs48.writeROM(wa++, 0b00100101); // EN TCNTI
+  mcs48.writeROM(wa++, 0b01010101); // STRT T
 
   // mcs48.writeROM(wa++, 0b00100011); // MOV A,
   // mcs48.writeROM(wa++, 0xff);       // #ffH
@@ -101,9 +176,9 @@ int main()
     mcs48.clock(); // clock cpu
     mcs48.debug(); // output mcs-48 debug information
     cout << endl;
-    bus.debug(); // output bus debug information
+    //bus.debug(); // output bus debug information
 
-    this_thread::sleep_for(chrono::milliseconds(5)); // wait for 500 ms
+    this_thread::sleep_for(chrono::milliseconds(500)); // wait for 500 ms
   }
 
   return 0;
