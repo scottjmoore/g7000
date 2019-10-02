@@ -88,10 +88,10 @@ private:
   TC_MODE tc_mode = TC_MODE::STOPPED; // Timer/Counter mode
   uint8_t t_prescaler = 0x00;         // Timer pre scaler counter (32 cycles per timer tick)
 
-  ::BUS bus;
+  ::BUS *bus;
 
 public:
-  MCS48(CPUTYPE _cputype, ::BUS &_bus);
+  MCS48(CPUTYPE _cputype, ::BUS *_bus);
   ~MCS48();
 
   void reset();

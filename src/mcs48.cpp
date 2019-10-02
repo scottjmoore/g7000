@@ -1,7 +1,7 @@
 #include "bus.h"
 #include "mcs48.h"
 
-MCS48::MCS48(CPUTYPE _cputype, ::BUS &_bus)
+MCS48::MCS48(CPUTYPE _cputype, ::BUS *_bus)
 {
   cputype = _cputype;
   bus = _bus;
@@ -39,14 +39,14 @@ MCS48::MCS48(CPUTYPE _cputype, ::BUS &_bus)
 
   cycles = 0;
 
-  bus.attachTo4BitBus(0, &PORT4, "PORT 4");
-  bus.attachTo4BitBus(1, &PORT5, "PORT 5");
-  bus.attachTo4BitBus(2, &PORT6, "PORT 6");
-  bus.attachTo4BitBus(3, &PORT7, "PORT 7");
-  bus.attachTo8BitBus(0, &PORT1, "PORT 1");
-  bus.attachTo8BitBus(1, &PORT2, "PORT 2");
-  bus.attachTo8BitBus(2, &BUS, "BUS");
-  bus.attachTo16BitBus(0, &PC, "PC");
+  bus->attachTo4BitBus(0, &PORT4, "PORT 4");
+  bus->attachTo4BitBus(1, &PORT5, "PORT 5");
+  bus->attachTo4BitBus(2, &PORT6, "PORT 6");
+  bus->attachTo4BitBus(3, &PORT7, "PORT 7");
+  bus->attachTo8BitBus(0, &PORT1, "PORT 1");
+  bus->attachTo8BitBus(1, &PORT2, "PORT 2");
+  bus->attachTo8BitBus(2, &BUS, "BUS");
+  bus->attachTo16BitBus(0, &PC, "PC");
 }
 
 MCS48::~MCS48()
@@ -633,7 +633,7 @@ uint8_t MCS48::readROM(uint16_t address)
   }
   else
   {
-    return bus.read_8_16(address);
+    return bus->read_8_16(address);
   }
 }
 
@@ -647,7 +647,7 @@ void MCS48::writeROM(uint16_t address, uint8_t data)
   }
   else
   {
-    bus.write_8_16(address, data);
+    bus->write_8_16(address, data);
   }
 }
 

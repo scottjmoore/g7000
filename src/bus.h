@@ -23,6 +23,10 @@ private:
   string *_16bitbusname;
   string *_32bitbusname;
 
+  uint8_t *rom;
+  uint16_t rom_address_start;
+  uint16_t rom_length;
+
 public:
   BUS();
   BUS(int _4bitbussize, int _8bitbussize, int _16bitbusize, int _32bitbussize);
@@ -37,6 +41,8 @@ public:
   uint8_t *connectTo8BitBus(int index);
   uint16_t *connectTo16BitBus(int index);
   uint32_t *connectTo32BitBus(int index);
+
+  void attachROM(uint8_t *data, uint16_t address_start, uint16_t length);
 
   uint8_t read_8_16(uint16_t address);
   void write_8_16(uint16_t address, uint8_t data);

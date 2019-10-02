@@ -66,9 +66,23 @@ uint16_t *BUS::connectTo16BitBus(int index) { return _16bitbus[index]; }
 
 uint32_t *BUS::connectTo32BitBus(int index) { return _32bitbus[index]; }
 
+void BUS::attachROM(uint8_t *data, uint16_t address_start, uint16_t length)
+{
+  rom = data;
+  rom_address_start = address_start;
+  rom_length = length;
+}
+
 uint8_t BUS::read_8_16(uint16_t address)
 {
-  return 0xff;
+  if ((address >= rom_address_start) && (address <= (rom_address_start + rom_length)))
+  {
+    return rom[address - rom_address_start];
+  }
+  else
+  {
+    return 0x00;
+  }
 }
 
 void BUS::write_8_16(uint16_t address, uint8_t data) {}
