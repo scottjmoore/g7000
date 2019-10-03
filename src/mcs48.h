@@ -244,4 +244,5 @@ public:
   uint8_t XRL_A_data(uint8_t data);
 
   void debug();
+  void disassemble();
 };

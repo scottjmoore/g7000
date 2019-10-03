@@ -119,7 +119,7 @@ void MCS48::fetch()
   fetched = readROM(PC);
 
   ++PC;
-  PC &= 0b1111111111;
+  PC &= 0b11111111111;
   PC |= PC12;
 }
 
@@ -134,6 +134,7 @@ void MCS48::push_pc_psw()
   secondbyte |= PSW & 0b11110000;
 
   stackpointer = (PSW & 0b00000111);
+
   writeRAM(STACK + (stackpointer << 1), firstbyte);
   writeRAM(STACK + (stackpointer << 1) + 1, secondbyte);
 
@@ -167,8 +168,8 @@ void MCS48::pop_pc()
   stackpointer = (PSW & 0b00000111);
   stackpointer--;
 
-  firstbyte = readRAM(STACK + stackpointer);
-  secondbyte = readRAM(STACK + stackpointer + 1);
+  firstbyte = readRAM(STACK + (stackpointer << 1));
+  secondbyte = readRAM(STACK + (stackpointer << 1) + 1);
 
   PC = (uint16_t)firstbyte | (((uint16_t)secondbyte & 0b00001111) << 8);
   PSW = (PSW & 0b11111000) | (stackpointer & 0b00000111);
@@ -296,6 +297,21 @@ uint8_t MCS48::decode()
     stringout << "   \t\t";
     stringout << "INS A, BUS";
     cycles = INS_A_BUS(); // execute instruction
+    break;
+  case 0b10110110: // JF0 address
+
+    fetch();
+    stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
+    stringout << "JF0 ";
+    stringout << setfill('0') << hex << setw(4) << ((PC & 0xff00) | fetched) << "H";
+    cycles = JF0(fetched);
+    break;
+  case 0b01110110: // JF1 address
+    fetch();
+    stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
+    stringout << "JF1 ";
+    stringout << setfill('0') << hex << setw(4) << ((PC & 0xff00) | fetched) << "H";
+    cycles = JF1(fetched);
     break;
   case 0b10110011: // JMPP @A
     stringout << "   \t\t";
@@ -445,11 +461,23 @@ uint8_t MCS48::decode()
     bool decoded = false; // was the opcode decoded?
 
     uint16_t address; // storage for fetched address
+    uint8_t bits;     // accumulator bit mask
     uint8_t reg;      // storage for fetched register
     uint8_t port;     // storage for fetched port
 
     switch ((fetched & 0b00011111)) // decode opcodes with address in top 3 bits
     {
+    case 0b00010010: // JB(0-7) address
+      bits = (fetched & 0b11100000) >> 5;
+
+      fetch();
+      address = fetched;
+      stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
+      stringout << "JB" << unsigned(bits) << " ";
+      stringout << setfill('0') << hex << setw(4) << address << "H";
+      cycles = JBB(bits, address);
+      decoded = true;
+      break;
     case 0b00000100: // JMP address
       address = (fetched & 0b11100000) << 3;
 
@@ -516,9 +544,15 @@ uint8_t MCS48::decode()
         cycles = ANL_A_RC(reg);
         decoded = true;
         break;
+      case 0b11001000: // DEC R
+        stringout << "   \t\t";
+        stringout << "DEC R" << unsigned(reg);
+        cycles = DEC_R(reg);
+        decoded = true;
+        break;
       case 0b11101000: // DJNZ R, address
         fetch();
-        address = fetched;
+        address = fetched | (PC & 0xff00);
         stringout << "   \t\t";
         stringout << "DJNZ R" << unsigned(reg) << ", ";
         stringout << setfill('0') << hex << setw(4) << address << "H";
@@ -537,34 +571,60 @@ uint8_t MCS48::decode()
         cycles = INC_RC(reg);
         decoded = true;
         break;
+      case 0b01001000: // ORL A, R
+        stringout << "   \t\t";
+        stringout << "INC A, R" << unsigned(reg);
+        cycles = ORL_A_R(reg);
+        decoded = true;
+        break;
       case 0b10101000: // MOV Rr, A
         stringout << "   \t\t";
         stringout << "MOV R" << unsigned(reg) << ", A";
         cycles = MOV_R_A(reg);
         decoded = true;
         break;
-
       case 0b11111000: // MOV A, Rr
         stringout << "   \t\t";
         stringout << "MOV A, R" << unsigned(reg);
         cycles = MOV_A_R(reg);
         decoded = true;
         break;
-
+      case 0b11110000: // MOV A, @R
+        stringout << "   \t\t";
+        stringout << "MOV A, @R" << unsigned(reg);
+        cycles = MOV_A_RC(reg);
+        decoded = true;
+        break;
       case 0b10100000: // MOV @RC, A
         stringout << "   \t\t";
         stringout << "MOV @R" << unsigned(reg) << ", A";
         cycles = MOV_RC_A(reg);
         decoded = true;
         break;
-
       case 0b10111000: // MOV Rr, #data
         fetch();
         stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
         stringout << "MOV R" << unsigned(reg) << ", ";
         stringout << "#" << setfill('0') << hex << setw(2) << unsigned(fetched) << "H";
-        writeRegister(reg, fetched);
-        cycles = 1;
+        cycles = MOV_R_data(reg, fetched);
+        decoded = true;
+        break;
+      case 0b10000000: // MOVX A, @R
+        stringout << "   \t\t";
+        stringout << "MOVX A, @R" << unsigned(reg);
+        cycles = MOVX_A_RC(reg);
+        decoded = true;
+        break;
+      case 0b10010000: // MOVX @R, A
+        stringout << "   \t\t";
+        stringout << "MOVX @R" << unsigned(reg) << ", A";
+        cycles = MOVX_RC_A(reg);
+        decoded = true;
+        break;
+      case 0b00101000: // XCH A, R
+        stringout << "   \t\t";
+        stringout << "XCH A, R" << unsigned(reg);
+        cycles = XCH_A_R(reg);
         decoded = true;
         break;
       }
@@ -576,6 +636,13 @@ uint8_t MCS48::decode()
 
       switch (fetched & 0b11111100)
       {
+      case 0b10011000: // ANL P, #data
+        fetch();
+        stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
+        stringout << "ANL P" << unsigned(port) << ", #" << setfill('0') << hex << setw(2) << unsigned(fetched) << "H";
+        cycles = ANL_P_data(port, fetched);
+        decoded = true;
+        break;
       case 0b00001000: // IN A, P
         stringout << "   \t\t";
         stringout << "IN A, P" << unsigned(port);
@@ -596,14 +663,14 @@ uint8_t MCS48::decode()
         break;
       case 0b10001000: // ORL P, #data
         fetch();
-        stringout << "   \t\t";
+        stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
         stringout << "ORL P" << unsigned(port) << ", #" << setfill('0') << hex << setw(2) << unsigned(fetched) << "H";
         cycles = ORL_P_data(port, fetched);
         decoded = true;
         break;
       case 0b10001100: // ORLD P, A
         fetch();
-        stringout << "   \t\t";
+        stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
         stringout << "ORL P" << unsigned(port) << ", A";
         cycles = ORLD_P_A(port);
         decoded = true;
@@ -1355,6 +1422,24 @@ uint8_t MCS48::MOVP3_A_AC()
   return 2;
 }
 
+uint8_t MCS48::MOVX_A_RC(uint8_t reg)
+{
+  uint8_t address = readRegister(reg);
+
+  A = bus->read_8_16(address);
+
+  return 2;
+}
+
+uint8_t MCS48::MOVX_RC_A(uint8_t reg)
+{
+  uint8_t address = readRegister(reg);
+
+  bus->write_8_16(address, A);
+
+  return 2;
+}
+
 uint8_t MCS48::NOP()
 {
   return 1;
@@ -1582,6 +1667,16 @@ uint8_t MCS48::SWAP_A()
   return 1;
 }
 
+uint8_t MCS48::XCH_A_R(uint8_t reg)
+{
+  uint8_t PA = A;
+
+  A = readRegister(reg);
+  writeRegister(reg, PA);
+
+  return 1;
+}
+
 uint8_t MCS48::XRL_A_data(uint8_t data)
 {
   A ^= data;
@@ -1628,6 +1723,24 @@ void MCS48::debug()
       cout << endl;
     }
   }
+
+  cout.flags(oldFlags);
+  cout.precision(oldPrec);
+  cout.fill(oldFill);
+}
+
+void MCS48::disassemble()
+{
+  if (cycles > 1)
+    return;
+
+  ios_base::fmtflags oldFlags = cout.flags();
+  streamsize oldPrec = cout.precision();
+  char oldFill = cout.fill();
+
+  cout << internal << setfill('0');
+
+  cout << decoded_opcode << " \t\t" << endl;
 
   cout.flags(oldFlags);
   cout.precision(oldPrec);
