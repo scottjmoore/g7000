@@ -201,6 +201,8 @@ int main()
 
   mcs48.reset(); // reset cpu
 
+  uint8_t ic = 0;
+
   while (1)
   {
     // cout << "\x1B[2J\x1B[H"; // clear console
@@ -210,6 +212,11 @@ int main()
     // mcs48.debug(); // output mcs-48 debug information
     // cout << endl;
     // bus.debug(); // output bus debug information
+
+    ++ic;
+
+    if (ic == 0x00)
+      mcs48.interrupt(); // simulator interrupt every 256 clock ticks
 
     this_thread::sleep_for(chrono::milliseconds(10)); // wait for 500 ms
   }
