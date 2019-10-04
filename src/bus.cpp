@@ -20,6 +20,11 @@ BUS::BUS(int __4bitbussize, int __8bitbussize, int __16bitbussize, int __32bitbu
   _8bitbusname = new string[_8bitbussize];
   _16bitbusname = new string[_16bitbussize];
   _32bitbusname = new string[_32bitbussize];
+
+  for (int i = 0; i < 256; i++)
+  {
+    xram[i] = 0xbb;
+  }
 }
 
 BUS::~BUS()
@@ -73,8 +78,23 @@ void BUS::attachROM(uint8_t *data, uint16_t address_start, uint16_t length)
   rom_length = length;
 }
 
+void BUS::setVRAM(uint8_t *vram)
+{
+  this->vram = vram;
+}
+
 uint8_t BUS::read_8_16(uint16_t address)
 {
+  if ((address < 0xff) && (*_8bitbus[0] & 0b01001000) == 0b00000000)
+  {
+    return vram[address & 0xff];
+  }
+
+  if ((address < 0x7f) && (*_8bitbus[0] & 0b00010000) == 0b00000000)
+  {
+    return xram[address & 0xff];
+  }
+
   if ((address >= rom_address_start) && (address <= (rom_address_start + rom_length)))
   {
     return rom[address - rom_address_start];
@@ -85,7 +105,18 @@ uint8_t BUS::read_8_16(uint16_t address)
   }
 }
 
-void BUS::write_8_16(uint16_t address, uint8_t data) {}
+void BUS::write_8_16(uint16_t address, uint8_t data)
+{
+  if ((*_8bitbus[0] & 0b00001000) == 0b00000000)
+  {
+    vram[address & 0xff] = data;
+  }
+
+  if ((*_8bitbus[0] & 0b01010000) == 0b00000000)
+  {
+    xram[address & 0xff] = data;
+  }
+}
 
 void BUS::debug()
 {
@@ -120,6 +151,18 @@ void BUS::debug()
     for (i = 0; i < _32bitbussize; i++)
     {
       cout << _32bitbusname[i] << " \t: " << setfill('0') << dec << unsigned(*_32bitbus[i]) << " \t" << hex << "0x" << setw(8) << unsigned(*_32bitbus[i]) << " \t0b" << bitset<32>(*_32bitbus[i]) << endl;
+    }
+  }
+
+  cout << endl;
+
+  for (int i = 0; i < 256; i++)
+  {
+    cout << hex << setw(2) << unsigned(xram[i]) << "  ";
+
+    if ((i % 16) == 15)
+    {
+      cout << endl;
     }
   }
 }

@@ -27,6 +27,11 @@ private:
   uint16_t rom_address_start;
   uint16_t rom_length;
 
+  uint8_t *vram;
+  uint8_t xram[256];
+
+  void *VRAMwrite;
+
 public:
   BUS();
   BUS(int _4bitbussize, int _8bitbussize, int _16bitbusize, int _32bitbussize);
@@ -43,6 +48,8 @@ public:
   uint32_t *connectTo32BitBus(int index);
 
   void attachROM(uint8_t *data, uint16_t address_start, uint16_t length);
+
+  void setVRAM(uint8_t *vram);
 
   uint8_t read_8_16(uint16_t address);
   void write_8_16(uint16_t address, uint8_t data);
