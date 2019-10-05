@@ -60,16 +60,20 @@ int main()
   {
     cout << "\x1B[2J\x1B[H"; // clear console
 
-    mcs48.clock();     // clock cpu
-    intel8245.clock(); // clock gpu
-    keyboard.clock();  // clock keyboard
+    for (int i = 0; i < 256; i++)
+    {
+      mcs48.clock();     // clock cpu
+      intel8245.clock(); // clock gpu
+      keyboard.clock();  // clock keyboard
+    }
 
     // mcs48.disassemble();
     mcs48.debug(); // output mcs-48 debug information
     cout << endl;
     bus.debug(); // output bus debug information
     cout << endl;
-    // intel8245.debug();
+    intel8245.debug();
+    cout << endl;
 
     ++ic;
 
@@ -80,13 +84,13 @@ int main()
     }
     else
     {
-      if (ic == 0x03)
+      if (ic == 0x10)
       {
         mcs48.setF1(0);
       }
     }
 
-    // this_thread::sleep_for(chrono::milliseconds(500)); // wait for 500 ms
+    this_thread::sleep_for(chrono::milliseconds(500)); // wait for 500 ms
   }
 
   return 0;
