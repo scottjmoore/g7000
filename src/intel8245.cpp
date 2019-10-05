@@ -64,7 +64,7 @@ void INTEL8245::debug()
     clr = (clr & 0b00001110) >> 1;
 
     if (x < 248)
-      cout << dec << unsigned(x) << ", " << unsigned(y) << " " << charset[chr & 0b00111111] << endl;
+      cout << dec << unsigned(x) << ", " << unsigned(y) << ", " << charset[chr & 0b00111111] << ", " << colors[clr] << endl;
   }
 
   cout.flags(oldFlags);

@@ -310,6 +310,14 @@ uint8_t MCS48::decode()
     stringout << "INS A, BUS";
     cycles = INS_A_BUS(); // execute instruction
     break;
+  case 0b11110110: // JC address
+
+    fetch();
+    stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
+    stringout << "JC ";
+    stringout << setfill('0') << hex << setw(4) << ((PC & 0xff00) | fetched) << "H";
+    cycles = JC(fetched);
+    break;
   case 0b10110110: // JF0 address
 
     fetch();
@@ -324,6 +332,13 @@ uint8_t MCS48::decode()
     stringout << "JF1 ";
     stringout << setfill('0') << hex << setw(4) << ((PC & 0xff00) | fetched) << "H";
     cycles = JF1(fetched);
+    break;
+  case 0b10010110: // JNZ address
+    fetch();
+    stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
+    stringout << "JNZ ";
+    stringout << setfill('0') << hex << setw(4) << ((PC & 0xff00) | fetched) << "H";
+    cycles = JNZ(fetched);
     break;
   case 0b10110011: // JMPP @A
     stringout << "   \t\t";
@@ -461,10 +476,10 @@ uint8_t MCS48::decode()
     stringout << "SWAP A";
     cycles = SWAP_A(); // execute instruction
     break;
-  case 0b11010011: // XLR A, #data
+  case 0b11010011: // XRL A, #data
     fetch();       // fetch immediate data to add to accumulator
     stringout << setfill('0') << hex << setw(2) << unsigned(fetched) << " \t\t";
-    stringout << "XLR A, ";
+    stringout << "XRL A, ";
     stringout << "#" << setfill('0') << hex << unsigned(fetched) << "H";
     cycles = XRL_A_data(fetched); // execute instruction
     break;
@@ -585,7 +600,7 @@ uint8_t MCS48::decode()
         break;
       case 0b01001000: // ORL A, R
         stringout << "   \t\t";
-        stringout << "INC A, R" << unsigned(reg);
+        stringout << "ORL A, R" << unsigned(reg);
         cycles = ORL_A_R(reg);
         decoded = true;
         break;
@@ -637,6 +652,12 @@ uint8_t MCS48::decode()
         stringout << "   \t\t";
         stringout << "XCH A, R" << unsigned(reg);
         cycles = XCH_A_R(reg);
+        decoded = true;
+        break;
+      case 0b11011000: // XRL A, R
+        stringout << "   \t\t";
+        stringout << "XRL A, R" << unsigned(reg);
+        cycles = XRL_A_R(reg);
         decoded = true;
         break;
       }
@@ -1459,21 +1480,29 @@ uint8_t MCS48::NOP()
 
 uint8_t MCS48::ORL_A_R(uint8_t reg)
 {
+  A |= readRegister(reg);
+
   return 1;
 }
 
 uint8_t MCS48::ORL_A_RC(uint8_t reg)
 {
+  A |= readRegister(readRegister(reg));
+
   return 1;
 }
 
 uint8_t MCS48::ORL_A_data(uint8_t data)
 {
+  A |= data;
+
   return 1;
 }
 
 uint8_t MCS48::ORL_BUS_data(uint8_t data)
 {
+  BUS |= data;
+
   return 1;
 }
 
@@ -1515,6 +1544,8 @@ uint8_t MCS48::ORLD_P_A(uint8_t port)
 
 uint8_t MCS48::OUTL_P0_A()
 {
+  PORT0 = A;
+
   return 1;
 }
 
@@ -1696,6 +1727,13 @@ uint8_t MCS48::XRL_A_data(uint8_t data)
   return 2;
 }
 
+uint8_t MCS48::XRL_A_R(uint8_t reg)
+{
+  A ^= readRegister(reg);
+
+  return 1;
+}
+
 // debug functions
 
 void MCS48::debug()
@@ -1721,6 +1759,7 @@ void MCS48::debug()
   cout << ((PSW & PSW_BITS::S2) ? "S2|" : "--|");
   cout << ((PSW & PSW_BITS::S1) ? "S1|" : "--|");
   cout << ((PSW & PSW_BITS::S0) ? "S0|" : "--|");
+  cout << " " << (F1 ? "|F1|" : "|--|");
   cout << endl;
   cout << "DBF : " << dec << unsigned(DBF) << " \t" << hex << "0x" << setw(1) << unsigned(DBF) << " \t0b" << bitset<1>(DBF) << " \t" << endl;
   cout << "SP  : " << dec << unsigned(PSW & 0b00000111) << " \t" << hex << "0x" << setw(2) << unsigned(PSW & 0b00000111) << " \t0b" << bitset<3>(PSW & 0b00000111) << " \t" << endl;
