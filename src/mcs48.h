@@ -103,6 +103,8 @@ public:
   void pop_pc_psw();
   void pop_pc();
 
+  void setF1(uint8_t F1);
+
   uint8_t decode();
 
   uint8_t readROM(uint16_t address);

@@ -175,6 +175,18 @@ void MCS48::pop_pc()
   PSW = (PSW & 0b11111000) | (stackpointer & 0b00000111);
 }
 
+void MCS48::setF1(uint8_t value)
+{
+  if (value)
+  {
+    this->F1 = 0b1;
+  }
+  else
+  {
+    this->F1 = 0b0;
+  }
+}
+
 uint8_t MCS48::decode()
 {
   uint8_t cycles = 0;

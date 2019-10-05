@@ -50,15 +50,21 @@ void INTEL8245::debug()
     }
   }
 
+  cout << endl;
+
   for (int i = 0; i < 12; i++) // decode single characters
   {
     uint8_t y = VRAM[0x10 + (i << 2)];
-    uint8_t x = VRAM[0x11 + (i << 2)];
+    uint16_t x = VRAM[0x11 + (i << 2)];
     uint8_t cp = VRAM[0x12 + (i << 2)];
     uint8_t clr = VRAM[0x13 + (i << 2)];
     uint8_t chr = ((y >> 1) + cp) >> 3;
 
-    cout << dec << unsigned(x) << ", " << unsigned(y) << " " << charset[chr & 0b00111111] << endl;
+    x |= (clr & 0b00000001) << 8;
+    clr = (clr & 0b00001110) >> 1;
+
+    if (x < 248)
+      cout << dec << unsigned(x) << ", " << unsigned(y) << " " << charset[chr & 0b00111111] << endl;
   }
 
   cout.flags(oldFlags);

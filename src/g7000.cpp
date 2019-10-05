@@ -204,18 +204,21 @@ int main()
 
   mcs48.reset(); // reset cpu
 
-  uint16_t ic = 0;
+  uint8_t ic = 0;
 
   while (1)
   {
     cout << "\x1B[2J\x1B[H"; // clear console
 
-    mcs48.clock();     // clock cpu
-    intel8245.clock(); // clock gpu
+    for (int i = 0; i < 64; i++)
+    {
+      mcs48.clock();     // clock cpu
+      intel8245.clock(); // clock gpu
+    }
 
     // mcs48.disassemble();
-    // mcs48.debug(); // output mcs-48 debug information
-    // cout << endl;
+    mcs48.debug(); // output mcs-48 debug information
+    cout << endl;
     // bus.debug(); // output bus debug information
     // cout << endl;
     intel8245.debug();
@@ -223,9 +226,16 @@ int main()
     ++ic;
 
     if (ic == 0x00)
-      mcs48.interrupt(); // simulate interrupt every 0x10000 clock ticks
+    {
+      // mcs48.interrupt(); // simulate interrupt
+      mcs48.setF1(1);
+    }
+    else
+    {
+      mcs48.setF1(0);
+    }
 
-    // this_thread::sleep_for(chrono::milliseconds(10)); // wait for 500 ms
+    // this_thread::sleep_for(chrono::milliseconds(500)); // wait for 500 ms
   }
 
   return 0;
