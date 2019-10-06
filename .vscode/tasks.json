@@ -31,7 +31,9 @@
         "build/obj/",
         "/Fe:",
         "build/g7000.exe",
-        "src/*.cpp"
+        "src/*.cpp",
+        "/link",
+        "/SUBSYSTEM:CONSOLE",
       ],
       "group": {
         "kind": "build",
