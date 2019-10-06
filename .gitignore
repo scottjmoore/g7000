@@ -1,4 +1,4 @@
-/build
+/build/*
 .DS_Store
 *.obj
 *.pdb
@@ -6,3 +6,6 @@
 *.ilk
 *.pdb
 *.out
+
+!/build/README-SDL.txt
+!/build/SDL2.dll
