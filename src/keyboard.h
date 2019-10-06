@@ -27,7 +27,7 @@ private:
           {"-", "*", "/", "=", "YES", "NO", "CLR", "ENT"},
   };
 
-  bool key_pressed[6][8] = {{false, true, false, false, false, false, false, false}, {false, false, false, false, false, false, false, false}, {false, false, false, false, false, false, false, false}, {false, false, false, false, false, false, false, false}, {false, false, false, false, false, false, false, false}, {false, false, false, false, false, false, false, false}};
+  bool key_pressed[6][8] = {{false, true, false, false, true, false, false, false}, {false, false, false, false, false, false, false, false}, {false, false, false, false, false, false, false, false}, {false, false, false, false, false, false, false, false}, {false, false, false, false, false, false, false, false}, {false, false, false, false, false, false, false, false}};
 
 public:
   KEYBOARD(::BUS *bus);

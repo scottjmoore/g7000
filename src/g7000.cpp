@@ -38,7 +38,7 @@ int main()
   uint8_t cartridge[2048];
   ifstream cartridgefile;
 
-  cartridgefile.open("build/roms/hockey_soccer_usa_eur.bin", ios::binary | ios::in);
+  cartridgefile.open("build/roms/alpine_skiing_usa_eur.bin", ios::binary | ios::in);
 
   for (int i = 0; i < 0x800; ++i)
   {
@@ -60,7 +60,7 @@ int main()
   {
     cout << "\x1B[2J\x1B[H"; // clear console
 
-    for (int i = 0; i < 256; i++)
+    for (int i = 0; i < 2048; i++)
     {
       mcs48.clock();     // clock cpu
       intel8245.clock(); // clock gpu
@@ -77,20 +77,21 @@ int main()
 
     ++ic;
 
-    if (ic == 0x00)
+    if (ic == 0x01)
     {
-      // mcs48.interrupt(); // simulate interrupt
+      //mcs48.interrupt(); // simulate interrupt
       mcs48.setF1(1);
     }
     else
     {
-      if (ic == 0x10)
+      if (ic == 0x02)
       {
         mcs48.setF1(0);
+        ic = 0x00;
       }
     }
 
-    this_thread::sleep_for(chrono::milliseconds(500)); // wait for 500 ms
+    this_thread::sleep_for(chrono::milliseconds(100)); // wait for 500 ms
   }
 
   return 0;

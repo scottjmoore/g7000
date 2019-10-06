@@ -46,6 +46,10 @@ private:
       "10", "ball", "man right", "man right walk", "man left walk", "man left", "arrow right", "tree",
       "slope left", "slope right", "man forward", "\\", "ship 1", "plane", "ship 2", "ship 3"};
 
+  uint8_t grid[9][10];
+
+  uint8_t sprite[4][8];
+
 public:
   INTEL8245(::BUS *_bus);
   ~INTEL8245();
@@ -56,5 +60,6 @@ public:
   void write(uint8_t address, uint8_t data);
   uint8_t read(uint8_t address);
 
+  void spritelineout(uint8_t byte);
   void debug();
 };

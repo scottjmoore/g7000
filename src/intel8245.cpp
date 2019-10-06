@@ -20,6 +20,82 @@ INTEL8245::~INTEL8245()
 
 void INTEL8245::clock()
 {
+  // clear grid
+
+  for (int i = 0; i < 9; i++)
+  {
+    for (int j = 0; j < 10; j++)
+    {
+      grid[i][j] = 0x00;
+    }
+  }
+
+  // clear sprites
+
+  for (int i = 0; i < 4; i++)
+  {
+    for (int j = 0; j < 8; j++)
+    {
+      sprite[i][j] = 0x00;
+    }
+  }
+
+  uint8_t address = 0x80;
+
+  // decode sprites
+
+  for (int i = 0; i < 4; i++)
+  {
+    for (int j = 0; j < 8; j++)
+    {
+      sprite[i][j] = VRAM[address];
+      address++;
+    }
+  }
+
+  // decode grid registers
+
+  address = 0xc0;
+
+  for (int j = 0; j < 9; j++)
+  {
+    for (int i = 0; i < 8; i++)
+    {
+      if (VRAM[address] & (1 << i))
+        grid[i][j] = 0x0f;
+      else
+        grid[i][j] = 0x00;
+    }
+
+    address++;
+  }
+
+  address = 0xd0;
+
+  for (int i = 0; i < 9; i++)
+  {
+    if (VRAM[address] & 1)
+      grid[i][9] = 0x0f;
+    else
+      grid[i][9] = 0x00;
+
+    address++;
+  }
+
+  address = 0xe0;
+
+  for (int j = 0; j < 10; j++)
+  {
+    for (int i = 0; i < 8; i++)
+    {
+      if (VRAM[address] & (1 << i))
+      {
+        grid[i][j] |= 0xf0;
+      }
+    }
+
+    address++;
+  }
 }
 
 void INTEL8245::write(uint8_t address, uint8_t data)
@@ -30,6 +106,17 @@ void INTEL8245::write(uint8_t address, uint8_t data)
 uint8_t INTEL8245::read(uint8_t address)
 {
   return VRAM[address];
+}
+
+void INTEL8245::spritelineout(uint8_t byte)
+{
+  for (int i = 0; i < 8; i++)
+  {
+    if (byte & (1 << (7 - i)))
+      cout << "@";
+    else
+      cout << " ";
+  }
 }
 
 void INTEL8245::debug()
@@ -65,6 +152,44 @@ void INTEL8245::debug()
 
     if (x < 248)
       cout << dec << unsigned(x) << ", " << unsigned(y) << ", " << charset[chr & 0b00111111] << ", " << colors[clr] << endl;
+  }
+
+  for (int i = 0; i < 9; i++)
+  {
+    for (int j = 0; j < 10; j++)
+    {
+      switch (grid[i][j])
+      {
+      case 0x00:
+        cout << ".";
+        break;
+      case 0x0f:
+        cout << "-";
+        break;
+      case 0xf0:
+        cout << "|";
+        break;
+      case 0xff:
+        cout << "+";
+        break;
+      default:
+        cout << " ";
+      }
+    }
+
+    if (i < 8)
+    {
+      cout << " \t";
+      spritelineout(sprite[0][i]);
+      cout << " \t";
+      spritelineout(sprite[1][i]);
+      cout << " \t";
+      spritelineout(sprite[2][i]);
+      cout << " \t";
+      spritelineout(sprite[3][i]);
+    }
+
+    cout << endl;
   }
 
   cout.flags(oldFlags);
