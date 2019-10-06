@@ -54,6 +54,7 @@ public:
   INTEL8245(::BUS *_bus);
   ~INTEL8245();
 
+  void framestart();
   void clock();
   uint32_t rgbl() { return (R << 24) | (G << 16) | (B << 8) | L; };
 

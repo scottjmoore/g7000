@@ -18,7 +18,7 @@ INTEL8245::~INTEL8245()
   delete[] VRAM;
 }
 
-void INTEL8245::clock()
+void INTEL8245::framestart()
 {
   // clear grid
 
@@ -96,6 +96,10 @@ void INTEL8245::clock()
 
     address++;
   }
+}
+
+void INTEL8245::clock()
+{
 }
 
 void INTEL8245::write(uint8_t address, uint8_t data)
